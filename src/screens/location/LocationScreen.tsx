@@ -165,7 +165,7 @@ export default function LocationScreen() {
                     <View style={styles.titleContainer}>
                         {/* Replaced t('...') with hardcoded or variable strings as i18n not imported */}
                         <Text style={styles.titleText}>위치 선택</Text>
-                        <Text style={styles.subtitleText}>지도를 움직여 위치를 조정해보세요</Text>
+                        <Text style={styles.subtitleText}>지도를 터치하여 흡연구역의 위치를 표시해주세요</Text>
                     </View>
 
                     <View style={styles.detailsContainer}>
@@ -185,7 +185,7 @@ export default function LocationScreen() {
             </View>
 
             <FixedBottomCTAProvider>
-                <FixedBottomCTA onPress={handleConfirm}>확인</FixedBottomCTA>
+                <FixedBottomCTA onPress={handleConfirm}>해당 위치로 흡연구역을 설정할게요</FixedBottomCTA>
             </FixedBottomCTAProvider>
         </View>
     );
@@ -258,6 +258,6 @@ const styles = StyleSheet.create({
     },
     warningText: {
         fontSize: 14,
-        color: '#6B7684', // grey600
+        color: '#4C514E', // grey600
     },
 });

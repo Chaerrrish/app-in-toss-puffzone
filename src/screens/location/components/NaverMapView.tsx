@@ -168,6 +168,8 @@ const HTML_SOURCE = `
             mapDataControl: false,
             zoomControl: false,
             mapTypeControl: false,
+            maxZoom: 21,
+            minZoom: 10,
           };
 
           window.map = new naver.maps.Map("map", mapOptions);
