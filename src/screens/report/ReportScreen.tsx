@@ -2,6 +2,7 @@ import { theme } from "@/shared/styles/theme";
 import { useState } from 'react';
 import { ScrollView, StyleSheet } from "react-native";
 import { Route } from "./route";
+import { useNavigation } from "@granite-js/react-native";
 import ReportLocationSection from "./widgets/ReportLocationSection";
 import ReportFormSection, { ReportInfoModalType } from "./widgets/ReportFormSection";
 import ReportCategorySection from "./widgets/ReportCategorySection";
@@ -12,6 +13,7 @@ import { FixedBottomCTA, FixedBottomCTAProvider } from "@toss/tds-react-native";
 
 export default function ReportScreen() {
     const params = Route.useParams();
+    const navigation = useNavigation();
 
     // Form State
     const [formData, setFormData] = useState<ReportFormData>({
@@ -61,7 +63,7 @@ export default function ReportScreen() {
                 formData={formData}
                 updateForm={updateForm}
             />
-            <FixedBottomCTA loading={false} onPress={() => { }}>다음</FixedBottomCTA>
+            <FixedBottomCTA loading={false} onPress={() => { navigation.navigate('/upload-guide') }}>다음</FixedBottomCTA>
         </FixedBottomCTAProvider>
     );
 }
