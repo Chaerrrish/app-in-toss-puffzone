@@ -166,8 +166,8 @@ const HTML_SOURCE = `
             scaleControl: false,
             logoControl: false,
             mapDataControl: false,
-            zoomControl: true,
-            mapTypeControl: true,
+            zoomControl: false,
+            mapTypeControl: false,
           };
 
           window.map = new naver.maps.Map("map", mapOptions);
