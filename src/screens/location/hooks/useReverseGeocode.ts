@@ -32,24 +32,30 @@ export function useReverseGeocode() {
             console.log('Geocode response:', JSON.stringify(data));
 
             if (data.results && data.results.length > 0) {
+                // 도로명 주소 우선 (Road Name Address Priority)
+                const roadAddrResult = data.results.find((result: any) => result.name === 'roadaddr');
+                if (roadAddrResult?.land?.name && roadAddrResult.region) {
+                    const region = roadAddrResult.region;
+                    const land = roadAddrResult.land;
+                    return `${region.area1.name} ${region.area2.name} ${region.area3.name} ${land.name} ${land.number1}${land.number2 ? '-' + land.number2 : ''}`.trim();
+                }
+
+                // 지번 주소 (Jibun Address Priority)
+                const addrResult = data.results.find((result: any) => result.name === 'addr');
+                if (addrResult?.land && addrResult.region) {
+                    const region = addrResult.region;
+                    const land = addrResult.land;
+                    return `${region.area1.name} ${region.area2.name} ${region.area3.name} ${land.number1}${land.number2 ? '-' + land.number2 : ''}`.trim();
+                }
+
+                // 행정구역만 (Region Only Fallback)
                 const result = data.results[0];
-                const region = result.region || {};
-                const address = result.land || {};
-
-                const sido = region.area1?.name || '';
-                const sigungu = region.area2?.name || '';
-                const dongmyun = region.area3?.name || '';
-                const roadAddress = address.name || '';
-
-                let fullAddress = `${sido} ${sigungu}`;
-                if (dongmyun) {
-                    fullAddress += ` ${dongmyun}`;
-                }
-                if (roadAddress && roadAddress !== 'unknown') {
-                    fullAddress += ` ${roadAddress}`;
+                if (result?.region) {
+                    const region = result.region;
+                    return `${region.area1.name} ${region.area2.name} ${region.area3.name}`.trim();
                 }
 
-                return fullAddress.trim();
+                return null;
             }
 
             console.warn('No results from geocode API');
