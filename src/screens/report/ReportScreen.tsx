@@ -1,13 +1,14 @@
 import { theme } from "@/shared/styles/theme";
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet } from "react-native";
 import { Route } from "./route";
 import ReportLocationSection from "./widgets/ReportLocationSection";
 import ReportFormSection, { ReportInfoModalType } from "./widgets/ReportFormSection";
 import ReportCategorySection from "./widgets/ReportCategorySection";
 import ReportFeatureSection from "./widgets/ReportFeatureSection";
+import ReportImageSection from "./widgets/ReportImageSection";
 import { ReportFormData } from "./types";
-import { FixedBottomCTA, FixedBottomCTAConsumer, FixedBottomCTAProvider } from "@toss/tds-react-native";
+import { FixedBottomCTA, FixedBottomCTAProvider } from "@toss/tds-react-native";
 
 export default function ReportScreen() {
     const params = Route.useParams();
@@ -18,6 +19,7 @@ export default function ReportScreen() {
         description: '',
         category: 'CATEGORY_GENERAL',
         features: [],
+        photos: [],
     });
     const [infoModal, setInfoModal] = useState<ReportInfoModalType>(null);
 
@@ -26,37 +28,41 @@ export default function ReportScreen() {
     };
 
     return (
-        <View style={styles.container}>
-            <ScrollView
-                contentContainerStyle={styles.scrollContent}
-                onTouchStart={() => {
+        <FixedBottomCTAProvider
+            wrapper={ScrollView}
+            wrapperProps={{
+                contentContainerStyle: styles.scrollContent,
+                onTouchStart: () => {
                     if (infoModal) setInfoModal(null); // Close modal on outside tap
-                }}
-            >
-                <ReportLocationSection
-                    address={params.address}
-                    latitude={params.latitude}
-                    longitude={params.longitude}
-                />
-                <ReportFormSection
-                    formData={formData}
-                    updateForm={updateForm}
-                    infoModal={infoModal}
-                    onInfoModalChange={setInfoModal}
-                />
-                <ReportCategorySection
-                    formData={formData}
-                    updateForm={updateForm}
-                />
-                <ReportFeatureSection
-                    formData={formData}
-                    updateForm={updateForm}
-                />
-            </ScrollView>
-            <FixedBottomCTAProvider>
-                <FixedBottomCTA loading={false} onPress={() => { }}>다음</FixedBottomCTA>
-            </FixedBottomCTAProvider>
-        </View>
+                },
+                style: styles.container,
+            }}
+        >
+            <ReportLocationSection
+                address={params.address}
+                latitude={params.latitude}
+                longitude={params.longitude}
+            />
+            <ReportFormSection
+                formData={formData}
+                updateForm={updateForm}
+                infoModal={infoModal}
+                onInfoModalChange={setInfoModal}
+            />
+            <ReportCategorySection
+                formData={formData}
+                updateForm={updateForm}
+            />
+            <ReportFeatureSection
+                formData={formData}
+                updateForm={updateForm}
+            />
+            <ReportImageSection
+                formData={formData}
+                updateForm={updateForm}
+            />
+            <FixedBottomCTA loading={false} onPress={() => { }}>다음</FixedBottomCTA>
+        </FixedBottomCTAProvider>
     );
 }
 

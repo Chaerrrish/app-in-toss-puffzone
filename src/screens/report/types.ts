@@ -16,4 +16,5 @@ export interface ReportFormData {
     description: string;
     category: ZoneCategory;
     features: ZoneFeature[];
+    photos: string[];
 }
