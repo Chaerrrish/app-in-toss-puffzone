@@ -4,12 +4,9 @@ import { theme } from "@/shared/styles/theme";
 import { HBar } from "@/shared/components/Divider";
 import { BaseTextInput } from "@/shared/components/TextInput";
 import { Asset } from '@toss/tds-react-native'; // Use Toss Asset if available, or fallbacks
+import { ReportFormData } from '../types';
 
 // Types (simplified for now, ideally import from types file)
-export type ReportFormData = {
-    name: string;
-    description: string;
-};
 export type ReportInfoModalType = 'name' | 'description' | null;
 
 type ReportFormSectionProps = {
@@ -19,23 +16,6 @@ type ReportFormSectionProps = {
     onInfoModalChange: (modal: ReportInfoModalType) => void;
 };
 
-// Mock translation
-const useMockTranslation = () => ({
-    t: (key: string) => {
-        const map: Record<string, string> = {
-            'report.form.nameLabel': '장소 이름',
-            'report.form.namePlaceholder': '장소 이름을 입력해주세요',
-            'report.form.descriptionLabel': '상세 설명',
-            'report.form.descriptionPlaceholder': '상세 설명을 입력해주세요',
-            'report.form.helper.title': '작성 팁',
-            'report.form.helper.nameDescription': '정확한 장소 명칭을 입력하면 다른 사용자가 찾기 쉬워요.',
-            'report.form.helper.nameExamples': '예) 강남역 1번 출구 앞, 삼성빌딩 흡연부스',
-            'report.form.helper.descriptionDescription': '찾아가는 길이나 특징을 자세히 적어주세요.',
-            'report.form.helper.descriptionExamples': '예) 건물 뒷편 주차장 옆에 있어요.',
-        };
-        return map[key] || key;
-    }
-});
 
 export default function ReportFormSection({
     formData,
@@ -43,7 +23,6 @@ export default function ReportFormSection({
     infoModal,
     onInfoModalChange,
 }: ReportFormSectionProps) {
-    const { t } = useMockTranslation();
 
     const toggleInfoModal = (target: ReportInfoModalType) => {
         onInfoModalChange(infoModal === target ? null : target);
@@ -55,7 +34,7 @@ export default function ReportFormSection({
             <View style={[styles.fieldContainer, infoModal === 'name' && { zIndex: 10 }]}>
                 <View style={styles.labelRow}>
                     <Text style={styles.labelText}>
-                        {t('report.form.nameLabel')}
+                        장소 이름
                     </Text>
                     <Pressable
                         style={styles.infoIconWrapper}

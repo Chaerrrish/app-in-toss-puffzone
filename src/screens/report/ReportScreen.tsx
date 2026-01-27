@@ -3,7 +3,9 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Route } from "./route";
 import ReportLocationSection from "./widgets/ReportLocationSection";
-import ReportFormSection, { ReportFormData, ReportInfoModalType } from "./widgets/ReportFormSection";
+import ReportFormSection, { ReportInfoModalType } from "./widgets/ReportFormSection";
+import ReportCategorySection from "./widgets/ReportCategorySection";
+import { ReportFormData } from "./types";
 
 export default function ReportScreen() {
     const params = Route.useParams();
@@ -12,6 +14,7 @@ export default function ReportScreen() {
     const [formData, setFormData] = useState<ReportFormData>({
         name: '',
         description: '',
+        category: 'CATEGORY_GENERAL',
     });
     const [infoModal, setInfoModal] = useState<ReportInfoModalType>(null);
 
@@ -37,6 +40,10 @@ export default function ReportScreen() {
                     updateForm={updateForm}
                     infoModal={infoModal}
                     onInfoModalChange={setInfoModal}
+                />
+                <ReportCategorySection
+                    formData={formData}
+                    updateForm={updateForm}
                 />
             </ScrollView>
         </View>
