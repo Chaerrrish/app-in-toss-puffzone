@@ -29,7 +29,6 @@ export function useReverseGeocode() {
             }
 
             const data = await response.json();
-            console.log('Geocode response:', JSON.stringify(data));
 
             if (data.results && data.results.length > 0) {
                 // 도로명 주소 우선 (Road Name Address Priority)

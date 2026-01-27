@@ -1,4 +1,4 @@
-import React, { useImperativeHandle, useRef, useEffect, useState } from 'react';
+import React, { useImperativeHandle, useRef, useEffect, useState, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 
@@ -18,7 +18,7 @@ interface NaverMapSelectorProps {
 }
 
 const NAVER_CLIENT_ID = import.meta.env.NAVER_MAP_CLIENT_ID;
-const BASE_URL = 'http://localhost:8081';
+const BASE_URL = 'https://puffzone.co.kr';
 
 console.log('[NaverMapView] Initializing with Client ID:', NAVER_CLIENT_ID);
 console.log('[NaverMapView] Using Base URL:', BASE_URL);
@@ -227,13 +227,14 @@ const HTML_SOURCE = `
       }
 
       // ======= 마커 =======
+      // window.MARKER_DATA_URI = ''; // Removed
+
       function updateMarker(lat, lng) {
-        if (!isSdkReady()) {
+        if (!window.map) {
           window.__PZ__.pendingMarker = { lat: lat, lng: lng };
-          log("updateMarker queued (SDK not ready yet)");
+          log("updateMarker queued (map not ready)");
           return;
         }
-        if (!window.map) return;
 
         try {
           var pos = new naver.maps.LatLng(lat, lng);
@@ -241,14 +242,43 @@ const HTML_SOURCE = `
             window.marker = new naver.maps.Marker({
               position: pos,
               map: window.map,
+              icon: {
+                url: 'https://www.puffzone.co.kr/images/markers/green_marker_44.png',
+                size: new naver.maps.Size(44, 44),
+                scaledSize: new naver.maps.Size(44, 44),
+                origin: new naver.maps.Point(0, 0),
+                anchor: new naver.maps.Point(22, 22)
+              }
             });
+            window.marker.setMap(window.map); // Explicit setMap
           } else {
             window.marker.setPosition(pos);
+            window.marker.setMap(window.map); // Ensure it's on the map
           }
         } catch (e) {
           log("updateMarker error: " + e.message);
         }
       }
+
+      function handleRNMessage(e) {
+        try {
+          var msg = JSON.parse(e.data);
+          log("Received RN message: " + msg.type);
+          
+          if (msg.type === 'SET_MARKER') {
+             updateMarker(msg.lat, msg.lng);
+          } else if (msg.type === 'MOVE_CAMERA') {
+             moveCamera(msg.lat, msg.lng, msg.zoom);
+          } else if (msg.type === 'INIT_MAP') {
+             initMap(msg.lat, msg.lng, msg.zoom);
+          }
+        } catch (err) {
+          log("Error parsing RN message: " + err.message);
+        }
+      }
+
+      document.addEventListener("message", handleRNMessage);
+      window.addEventListener("message", handleRNMessage);
 
       // ======= 카메라 이동 =======
       function moveCamera(lat, lng, zoom) {
@@ -292,11 +322,23 @@ export function NaverMapSelector({
   const webviewRef = useRef<WebView>(null);
   const [isMapReady, setIsMapReady] = useState(false);
 
+  const webViewSource = useMemo(
+    () => ({
+      html: HTML_SOURCE,
+      baseUrl: BASE_URL,
+    }),
+    []
+  );
+
   useImperativeHandle(mapRef, () => ({
     animateCameraTo: (params: { latitude: number; longitude: number; zoom?: number }) => {
       if (webviewRef.current && isMapReady) {
-        const script = `moveCamera(${params.latitude}, ${params.longitude}, ${params.zoom}); true;`;
-        webviewRef.current.injectJavaScript(script);
+        webviewRef.current.postMessage(JSON.stringify({
+          type: 'MOVE_CAMERA',
+          lat: params.latitude,
+          lng: params.longitude,
+          zoom: params.zoom
+        }));
       }
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -307,15 +349,22 @@ export function NaverMapSelector({
 
   useEffect(() => {
     if (selectedLocation && webviewRef.current && isMapReady) {
-      const script = `updateMarker(${selectedLocation.latitude}, ${selectedLocation.longitude}); true;`;
-      webviewRef.current.injectJavaScript(script);
+      webviewRef.current.postMessage(JSON.stringify({
+        type: 'SET_MARKER',
+        lat: selectedLocation.latitude,
+        lng: selectedLocation.longitude
+      }));
     }
   }, [selectedLocation, isMapReady]);
 
   useEffect(() => {
     if (webviewRef.current && isMapReady) {
-      const script = `initMap(${camera.latitude}, ${camera.longitude}, ${camera.zoom}); true;`;
-      webviewRef.current.injectJavaScript(script);
+      webviewRef.current.postMessage(JSON.stringify({
+        type: 'INIT_MAP',
+        lat: camera.latitude,
+        lng: camera.longitude,
+        zoom: camera.zoom
+      }));
     }
   }, [isMapReady, camera]);
 
@@ -335,8 +384,6 @@ export function NaverMapSelector({
         console.log('[WebView Log]:', data.message);
       } else if (data.type === 'AUTH_ERROR') {
         console.error('[Naver Map Auth Error]:', data.error);
-        console.error('[Debug Info]: Client ID:', NAVER_CLIENT_ID);
-        console.error('[Debug Info]: Base URL:', BASE_URL);
       } else if (data.type === 'SDK_READY') {
         console.log('[WebView]: SDK fully loaded and ready');
         setIsMapReady(true);
@@ -346,12 +393,14 @@ export function NaverMapSelector({
     }
   };
 
+  // const markerDataUri = ... (removed)
+
   return (
     <View style={styles.container}>
       <WebView
         ref={webviewRef}
         style={styles.webview}
-        source={{ html: HTML_SOURCE, baseUrl: BASE_URL }}
+        source={webViewSource}
         onMessage={handleMessage}
         onLoadStart={() => {
           console.log('[WebView] Loading started...');
