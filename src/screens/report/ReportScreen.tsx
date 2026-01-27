@@ -5,7 +5,9 @@ import { Route } from "./route";
 import ReportLocationSection from "./widgets/ReportLocationSection";
 import ReportFormSection, { ReportInfoModalType } from "./widgets/ReportFormSection";
 import ReportCategorySection from "./widgets/ReportCategorySection";
+import ReportFeatureSection from "./widgets/ReportFeatureSection";
 import { ReportFormData } from "./types";
+import { FixedBottomCTA, FixedBottomCTAConsumer, FixedBottomCTAProvider } from "@toss/tds-react-native";
 
 export default function ReportScreen() {
     const params = Route.useParams();
@@ -15,6 +17,7 @@ export default function ReportScreen() {
         name: '',
         description: '',
         category: 'CATEGORY_GENERAL',
+        features: [],
     });
     const [infoModal, setInfoModal] = useState<ReportInfoModalType>(null);
 
@@ -45,7 +48,14 @@ export default function ReportScreen() {
                     formData={formData}
                     updateForm={updateForm}
                 />
+                <ReportFeatureSection
+                    formData={formData}
+                    updateForm={updateForm}
+                />
             </ScrollView>
+            <FixedBottomCTAProvider>
+                <FixedBottomCTA loading={false} onPress={() => { }}>다음</FixedBottomCTA>
+            </FixedBottomCTAProvider>
         </View>
     );
 }
