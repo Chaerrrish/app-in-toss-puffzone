@@ -1,19 +1,42 @@
 import { theme } from "@/shared/styles/theme";
+import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Route } from "./route";
 import ReportLocationSection from "./widgets/ReportLocationSection";
+import ReportFormSection, { ReportFormData, ReportInfoModalType } from "./widgets/ReportFormSection";
 
 export default function ReportScreen() {
     const params = Route.useParams();
-    const navigation = Route.useNavigation();
+
+    // Form State
+    const [formData, setFormData] = useState<ReportFormData>({
+        name: '',
+        description: '',
+    });
+    const [infoModal, setInfoModal] = useState<ReportInfoModalType>(null);
+
+    const updateForm = (data: Partial<ReportFormData>) => {
+        setFormData(prev => ({ ...prev, ...data }));
+    };
 
     return (
         <View style={styles.container}>
-            <ScrollView contentContainerStyle={styles.scrollContent}>
+            <ScrollView
+                contentContainerStyle={styles.scrollContent}
+                onTouchStart={() => {
+                    if (infoModal) setInfoModal(null); // Close modal on outside tap
+                }}
+            >
                 <ReportLocationSection
                     address={params.address}
                     latitude={params.latitude}
                     longitude={params.longitude}
+                />
+                <ReportFormSection
+                    formData={formData}
+                    updateForm={updateForm}
+                    infoModal={infoModal}
+                    onInfoModalChange={setInfoModal}
                 />
             </ScrollView>
         </View>
