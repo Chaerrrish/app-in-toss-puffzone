@@ -115,9 +115,7 @@ export default function LocationScreen() {
         });
 
         console.log('Confirmed location:', selectedCoords, address);
-        // Navigate away - replace router.back() or router.replace()
-        navigation.pop();
-    }, [getAddressFromCoords, hasSelection, selectedCoords, setLocation, navigation]);
+    }, [getAddressFromCoords, hasSelection, selectedCoords, setLocation]);
 
     // Auto-move to current location when screen loads
     useEffect(() => {
@@ -185,7 +183,14 @@ export default function LocationScreen() {
             </View>
 
             <FixedBottomCTAProvider>
-                <FixedBottomCTA onPress={handleConfirm}>해당 위치로 흡연구역을 설정할게요</FixedBottomCTA>
+                <FixedBottomCTA onPress={() => {
+                    handleConfirm();
+                    navigation.navigate('/report', {
+                        latitude: selectedCoords.latitude,
+                        longitude: selectedCoords.longitude,
+                        address: formData.address || '',
+                    });
+                }}>해당 위치로 흡연구역을 설정할게요</FixedBottomCTA>
             </FixedBottomCTAProvider>
         </View>
     );

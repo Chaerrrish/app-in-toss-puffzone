@@ -4,6 +4,7 @@ import { Route as _AboutRoute } from '../pages/about';
 import { Route as _IntroRoute } from '../pages/intro';
 import { Route as _IndexRoute } from '../pages/';
 import { Route as _LocationRoute } from '../pages/location';
+import { Route as _ReportRoute } from '../pages/report';
 
 declare module '@granite-js/react-native' {
   interface RegisterScreenInput {
@@ -11,6 +12,7 @@ declare module '@granite-js/react-native' {
     '/intro': (typeof _IntroRoute)['_inputType'];
     '/': (typeof _IndexRoute)['_inputType'];
     '/location': (typeof _LocationRoute)['_inputType'];
+    '/report': (typeof _ReportRoute)['_inputType'];
   }
 
   interface RegisterScreen {
@@ -18,5 +20,14 @@ declare module '@granite-js/react-native' {
     '/intro': (typeof _IntroRoute)['_outputType'];
     '/': (typeof _IndexRoute)['_outputType'];
     '/location': (typeof _LocationRoute)['_outputType'];
+    '/report': (typeof _ReportRoute)['_outputType'];
   }
 }
+
+export const routes = {
+  '/about': _AboutRoute,
+  '/intro': _IntroRoute,
+  '/': _IndexRoute,
+  '/location': _LocationRoute,
+  '/report': _ReportRoute,
+};

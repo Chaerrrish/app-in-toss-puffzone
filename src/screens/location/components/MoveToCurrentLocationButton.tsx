@@ -20,7 +20,7 @@ export function MoveToCurrentLocationButton({
         >
             <View style={styles.iconContainer}>
                 {/* Using a placeholder icon or available Toss Asset */}
-                <Asset.Icon name="icon-circle-mono" color="#26BF5B" />
+                <Asset.Icon name="icon-conditional-order-dark" color="#26BF5B" />
             </View>
         </Pressable>
     );
