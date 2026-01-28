@@ -7,7 +7,7 @@ const BASE_URL = 'https://word-gmc-degrees-controlled.trycloudflare.com';
 
 interface LoginWithTossResponse {
     success: boolean;
-    // Add other response properties if needed
+    result?: Record<string, any>; // Flexible result type for now
 }
 
 export const loginWithToss = async (code: string): Promise<LoginWithTossResponse | null> => {
@@ -19,8 +19,6 @@ export const loginWithToss = async (code: string): Promise<LoginWithTossResponse
             },
             body: JSON.stringify({ code }),
         });
-
-        console.log('url', `${BASE_URL}/api/auth/toss/start`)
 
         if (!response.ok) {
             console.error('Toss login failed:', response.status, response.statusText);

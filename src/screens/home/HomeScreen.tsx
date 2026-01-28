@@ -12,18 +12,25 @@ import { loginWithToss } from '../../shared/api/auth';
 
 
 
+import { useState } from 'react';
+
 export default function HomeScreen() {
   const adaptive = useAdaptive();
   const navigation = useNavigation();
 
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
   const handleLogin = async () => {
+    if (isLoggingIn) return;
+    setIsLoggingIn(true);
+
     try {
       const { authorizationCode } = await appLogin();
       console.log('Got auth code:', authorizationCode);
 
       const result = await loginWithToss(authorizationCode);
 
-      if (result && result.success) {
+      if (result && result.success && result.result?.success !== false) {
         console.log('Login successful:', result);
         navigation.navigate('/location');
       } else {
@@ -32,6 +39,8 @@ export default function HomeScreen() {
       }
     } catch (error) {
       console.error('Failed to login:', error);
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
