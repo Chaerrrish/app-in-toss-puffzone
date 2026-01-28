@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Asset } from '@toss/tds-react-native';
 
 type MoveToCurrentLocationButtonProps = Readonly<{
@@ -18,8 +18,10 @@ export function MoveToCurrentLocationButton({
             ]}
             onPress={onPress}
         >
-            {/* Using a placeholder icon or available Toss Asset */}
-            <Text>현재 위치로 이동</Text>
+            <View style={styles.iconContainer}>
+                {/* Using a placeholder icon or available Toss Asset */}
+                <Asset.Icon name="icon-conditional-order-dark" color="#26BF5B" />
+            </View>
         </Pressable>
     );
 }
@@ -35,6 +37,12 @@ const styles = StyleSheet.create({
         borderColor: '#E5E8EB', // gray-80
         backgroundColor: '#FFFFFF',
         padding: 6,
+    },
+    iconContainer: {
+        width: 36,
+        height: 36,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     pressed: {
         opacity: 0.8,
