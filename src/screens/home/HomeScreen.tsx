@@ -7,12 +7,33 @@ import {
 } from '@toss/tds-react-native';
 import { Spacing, useNavigation } from '@granite-js/react-native';
 import { useAdaptive } from '@toss/tds-react-native/private';
+import { appLogin } from '@apps-in-toss/framework';
+import { loginWithToss } from '../../shared/api/auth';
 
 
 
 export default function HomeScreen() {
   const adaptive = useAdaptive();
   const navigation = useNavigation();
+
+  const handleLogin = async () => {
+    try {
+      const { authorizationCode } = await appLogin();
+      console.log('Got auth code:', authorizationCode);
+
+      const result = await loginWithToss(authorizationCode);
+
+      if (result && result.success) {
+        console.log('Login successful:', result);
+        navigation.navigate('/location');
+      } else {
+        console.error('Login failed:', result);
+        // Optionally handle error (toast, alert)
+      }
+    } catch (error) {
+      console.error('Failed to login:', error);
+    }
+  };
 
   return (
     <>
@@ -60,7 +81,7 @@ export default function HomeScreen() {
       />
 
       <FixedBottomCTAProvider>
-        <FixedBottomCTA loading={false} onPress={() => navigation.navigate('/location')}>다음</FixedBottomCTA>
+        <FixedBottomCTA loading={false} onPress={handleLogin}>토스로 로그인하기</FixedBottomCTA>
       </FixedBottomCTAProvider>
     </>
   );
