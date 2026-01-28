@@ -13,6 +13,7 @@ import { loginWithToss } from '../../shared/api/auth';
 
 
 import { useState } from 'react';
+import MapIcon from '../../shared/assets/MapIcon';
 
 export default function HomeScreen() {
   const adaptive = useAdaptive();
@@ -78,13 +79,7 @@ export default function HomeScreen() {
           upper={
             <Top.UpperAssetContent
               content={
-                <Asset.Image
-                  frameShape={{ width: 80, height: 80 }}
-                  source={{
-                    uri: 'https://static.toss.im/2d-emojis/png/4x/uE116.png',
-                  }}
-                  accessibilityLabel=""
-                />
+                <MapIcon width={90} height={90} />
               }
             />
           }

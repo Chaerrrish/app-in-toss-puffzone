@@ -3,16 +3,15 @@ import React from 'react';
 import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { theme } from '@/shared/styles/theme';
 import { Asset, FixedBottomCTA, FixedBottomCTAProvider } from '@toss/tds-react-native';
-// Assuming Divider exists based on file listing, if not I will make a simple line
 
 const GUIDE_IMAGES = [
     {
         image: 'https://puffzone.co.kr/toss/photo_example/1.png',
-        label: '전경 촬영' // Temporary label
+        label: '흡연공간을 전체적으로 촬영'
     },
     {
         image: 'https://puffzone.co.kr/toss/photo_example/2.png',
-        label: '주변 환경'
+        label: '주변환경이 잘 보이게 촬영'
     },
     {
         image: 'https://puffzone.co.kr/toss/photo_example/3.png',
@@ -24,7 +23,7 @@ const GUIDE_IMAGES = [
     },
     {
         image: 'https://puffzone.co.kr/toss/photo_example/5.png',
-        label: '흐릿한 사진'
+        label: '잘 안 보이는 사진'
     },
 ];
 
@@ -72,7 +71,7 @@ export default function UploadGuideScreen({ photoCount = 0, onImagesSelected = (
                                 <View key={index} style={styles.imageContainer}>
                                     <Asset.Image
                                         source={{ uri: item.image }}
-                                        frameShape={{ width: 165, height: 120 }}
+                                        frameShape={{ width: 173, height: 120 }}
                                         scaleType="crop"
                                         style={{ borderRadius: 8, backgroundColor: theme.colors.gray[95] }}
                                     />
@@ -102,7 +101,7 @@ export default function UploadGuideScreen({ photoCount = 0, onImagesSelected = (
                                 <View key={index} style={styles.imageContainer}>
                                     <Asset.Image
                                         source={{ uri: item.image }}
-                                        frameShape={{ width: 106, height: 96 }}
+                                        frameShape={{ width: 114, height: 96 }}
                                         scaleType="crop"
                                         style={{ borderRadius: 8, backgroundColor: theme.colors.gray[95] }}
                                     />
@@ -176,7 +175,6 @@ const styles = StyleSheet.create({
     },
     imageContainer: {
         flex: 1,
-        borderRadius: 8,
         alignItems: 'center',
         gap: 12,
     },
@@ -198,7 +196,7 @@ const styles = StyleSheet.create({
     },
     imageLabel: {
         ...theme.text.m.m,
-        color: theme.colors.text.tertiary,
+        color: theme.colors.gray[30],
         textAlign: 'center',
     },
     bottomButtonContainer: {
