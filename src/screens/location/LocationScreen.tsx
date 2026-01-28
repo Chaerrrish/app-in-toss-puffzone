@@ -12,6 +12,7 @@ import { NaverMapSelector, CameraState } from './components/NaverMapView';
 import { useReportForm } from './hooks/useReportForm';
 import { useReverseGeocode } from './hooks/useReverseGeocode';
 import { useMoveToCurrentLocation } from './hooks/useMoveToCurrentLocation';
+import { theme } from '@/shared/styles/theme';
 
 const INITIAL_CAMERA: CameraState = {
     latitude: 37.5536,
@@ -162,13 +163,13 @@ export default function LocationScreen() {
                 <View style={styles.infoContainer}>
                     <View style={styles.titleContainer}>
                         {/* Replaced t('...') with hardcoded or variable strings as i18n not imported */}
-                        <Text style={styles.titleText}>위치 선택</Text>
+                        <Text style={styles.titleText}>흡연구역의 위치를 확인해주세요</Text>
                         <Text style={styles.subtitleText}>지도를 터치하여 흡연구역의 위치를 표시해주세요</Text>
                     </View>
 
                     <View style={styles.detailsContainer}>
                         <View style={styles.addressBox}>
-                            <Text style={[styles.addressLabel, { color: adaptive.blue500 }]}>현재 주소</Text>
+                            <Text style={[styles.addressLabel, { color: theme.colors.primary[40] }]}>현 위치</Text>
                             <Text style={styles.addressText}>{formData.address || '주소를 가져오는 중...'}</Text>
                         </View>
 
@@ -176,14 +177,14 @@ export default function LocationScreen() {
                         <View style={styles.warningBox}>
                             {/* Asset Icon for warning if available, else text */}
                             <Asset.Icon name="icon-info-circle-mono" color="#FFD057" />
-                            <Text style={styles.warningText}>정확한 리포트를 위해 위치를 확인해주세요.</Text>
+                            <Text style={styles.warningText}>지도의 표시와 실제 위치가 맞는지 확인해주세요</Text>
                         </View>
                     </View>
                 </View>
             </View>
 
             <FixedBottomCTAProvider>
-                <FixedBottomCTA onPress={() => {
+                <FixedBottomCTA disabled={!hasSelection} onPress={() => {
                     handleConfirm();
                     navigation.navigate('/report', {
                         latitude: selectedCoords.latitude,
@@ -226,23 +227,23 @@ const styles = StyleSheet.create({
         gap: 4,
     },
     titleText: {
-        fontSize: 24,
+        fontSize: 20,
         fontWeight: 'bold',
-        color: '#333D4B', // grey900
+        color: theme.colors.gray[10],
     },
     subtitleText: {
         fontSize: 16,
-        color: '#8B95A1', // grey600
+        color: theme.colors.gray[30],
     },
     detailsContainer: {
         gap: 16,
     },
     addressBox: {
         padding: 16,
-        backgroundColor: '#F2F4F6', // grey100 / primary-95 approx
+        backgroundColor: theme.colors.primary[95], // grey100 / primary-95 approx
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#E5E8EB',
+        borderColor: theme.colors.primary[80],
         gap: 6,
     },
     addressLabel: {
@@ -251,18 +252,18 @@ const styles = StyleSheet.create({
     },
     addressText: {
         fontSize: 16,
-        color: '#4E5968', // grey700
+        color: theme.colors.gray[20],
     },
     warningBox: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 8,
         padding: 10,
-        backgroundColor: '#FEFBE8', // yellow-90 approx
+        backgroundColor: theme.colors.yellow[90],
         borderRadius: 12,
     },
     warningText: {
         fontSize: 14,
-        color: '#4C514E', // grey600
+        color: theme.colors.gray[30],
     },
 });

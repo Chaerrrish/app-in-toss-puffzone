@@ -54,12 +54,12 @@ export default function ReportImageSection({ formData, updateForm }: ReportImage
 }
 
 function ImagePickerCard({ currentCount, maxCount, onPress }: { currentCount: number; maxCount: number; onPress: () => void }) {
-    const isFull = currentCount >= maxCount;
+    const isActive = currentCount > 0 && currentCount < maxCount;
     return (
         <Pressable onPress={onPress} style={styles.pickerCard}>
             <Asset.Icon name='icon-camera' color={theme.colors.gray[60]} />
             <View style={styles.countContainer}>
-                <Text style={[styles.countText, isFull ? styles.textFull : styles.textActive]}>{currentCount}</Text>
+                <Text style={[styles.countText, isActive ? styles.textActive : styles.textFull]}>{currentCount}</Text>
                 <Text style={styles.countTotal}>/{maxCount}</Text>
             </View>
         </Pressable>
