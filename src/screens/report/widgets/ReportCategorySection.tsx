@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { Checkbox } from '@toss/tds-react-native';
+import RadioButton from '@/shared/components/RadioButton';
 import { theme } from '@/shared/styles/theme';
 import { ReportFormData, ZoneCategory } from '../types';
 
@@ -47,8 +47,8 @@ export default function ReportCategorySection({
                         >
                             <View style={styles.radioContainer}>
                                 <View pointerEvents="none">
-                                    <Checkbox.Circle
-                                        checked={isSelected}
+                                    <RadioButton
+                                        selected={isSelected}
                                     />
                                 </View>
                                 <View style={styles.textContainer}>
