@@ -20,8 +20,6 @@ interface NaverMapSelectorProps {
 const NAVER_CLIENT_ID = import.meta.env.NAVER_MAP_CLIENT_ID;
 const BASE_URL = 'https://puffzone.co.kr';
 
-console.log('[NaverMapView] Initializing with Client ID:', NAVER_CLIENT_ID);
-console.log('[NaverMapView] Using Base URL:', BASE_URL);
 
 const HTML_SOURCE = `
  <!-- HTML_SOURCE 로 넣을 문자열 (그대로 백틱 템플릿에 넣으세요) -->
@@ -176,6 +174,13 @@ const HTML_SOURCE = `
           window.__PZ__.mapInited = true;
           log("Map instance created.");
 
+          // 맵 생성 직후 대기 중인 마커가 있다면 처리
+          if (window.__PZ__.pendingMarker) {
+             var m = window.__PZ__.pendingMarker;
+             window.__PZ__.pendingMarker = null;
+             updateMarker(m.lat, m.lng);
+          }
+
           // 클릭 이벤트
           naver.maps.Event.addListener(window.map, "click", function (e) {
             var clat = e.coord.lat();
@@ -232,6 +237,7 @@ const HTML_SOURCE = `
       // window.MARKER_DATA_URI = ''; // Removed
 
       function updateMarker(lat, lng) {
+        log("updateMarker called with: " + lat + ", " + lng);
         if (!window.map) {
           window.__PZ__.pendingMarker = { lat: lat, lng: lng };
           log("updateMarker queued (map not ready)");
@@ -241,6 +247,7 @@ const HTML_SOURCE = `
         try {
           var pos = new naver.maps.LatLng(lat, lng);
           if (!window.marker) {
+            log("Creating new marker...");
             window.marker = new naver.maps.Marker({
               position: pos,
               map: window.map,
@@ -252,10 +259,13 @@ const HTML_SOURCE = `
                 anchor: new naver.maps.Point(22, 22)
               }
             });
-            window.marker.setMap(window.map); // Explicit setMap
+            window.marker.setMap(window.map); 
+            log("Marker created and set to map.");
           } else {
+            log("Updating existing marker position...");
             window.marker.setPosition(pos);
-            window.marker.setMap(window.map); // Ensure it's on the map
+            window.marker.setMap(window.map);
+            log("Marker position updated.");
           }
         } catch (e) {
           log("updateMarker error: " + e.message);
@@ -367,6 +377,15 @@ export function NaverMapSelector({
         lng: camera.longitude,
         zoom: camera.zoom
       }));
+
+      // Map initialized, now set the initial marker immediately
+      if (selectedLocation) {
+        webviewRef.current.postMessage(JSON.stringify({
+          type: 'SET_MARKER',
+          lat: selectedLocation.latitude,
+          lng: selectedLocation.longitude
+        }));
+      }
     }
   }, [isMapReady, camera]);
 
@@ -395,7 +414,6 @@ export function NaverMapSelector({
     }
   };
 
-  // const markerDataUri = ... (removed)
 
   return (
     <View style={styles.container}>
