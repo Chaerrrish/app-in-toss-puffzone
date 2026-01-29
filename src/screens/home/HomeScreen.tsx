@@ -50,20 +50,7 @@ export default function HomeScreen() {
   return (
     <>
       <FixedBottomCTAProvider>
-        <>
-          <Asset.Icon
-            frameShape={{ width: 20 }}
-            name="icon-dots-mono"
-            color="rgba(0, 19, 43, 0.58)"
-          />
-        </>
-        <>
-          <Asset.Icon
-            frameShape={{ width: 20 }}
-            name="icon-x-mono"
-            color="rgba(0, 19, 43, 0.58)"
-          />
-        </>
+
         <Spacing size={12} />
         <Top
           title={
@@ -85,14 +72,7 @@ export default function HomeScreen() {
           }
           lowerGap={0}
         />
-        <>
-          <Asset.Image
-            frameShape={{ width: 250 }}
-            source={{
-              uri: 'https://static.toss.im/3d/tossmobile-kv-mobile-pay-hero.png',
-            }}
-          />
-        </>
+
         <Spacing size={190} />
 
         <StepperRow
@@ -110,7 +90,8 @@ export default function HomeScreen() {
         />
 
 
-        <FixedBottomCTA loading={false} onPress={handleLogin}>시작하기</FixedBottomCTA>
+        {/* <FixedBottomCTA loading={false} onPress={handleLogin}>시작하기</FixedBottomCTA> */}
+        <FixedBottomCTA loading={false} onPress={() => navigation.navigate('/success')}>시작하기</FixedBottomCTA>
       </FixedBottomCTAProvider>
     </>
   );
