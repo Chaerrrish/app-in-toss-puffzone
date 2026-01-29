@@ -77,7 +77,7 @@ export default function ReportScreen() {
             }, imageFiles);
 
             if (result.success) {
-                Alert.alert('제보 완료', '흡연구역 제보가 완료되었습니다!', [
+                Alert.alert('제보 완료', '흡연구역 제보가 완료되었습니다!\n제보하신 흡연구역은 퍼프존 앱에서 확인 가능합니다.', [
                     { text: '확인', onPress: () => navigation.navigate('/') }
                 ]);
             } else {
