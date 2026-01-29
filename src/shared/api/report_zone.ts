@@ -2,7 +2,7 @@
 // Client-side Zone Report API
 
 // TODO: Replace with env
-const BASE_URL = 'https://hand-tested-spending-physics.trycloudflare.com';
+const BASE_URL = 'https://www.puffzone.co.kr';
 
 interface ZoneInput {
     name: string;
