@@ -1,9 +1,14 @@
 
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { theme } from '@/shared/styles/theme';
 import { Asset, FixedBottomCTA, FixedBottomCTAProvider } from '@toss/tds-react-native';
 import PhotoOptionBottomSheet from './components/PhotoOptionBottomSheet';
+// @ts-ignore
+import { showImagePicker } from '@apps-in-toss/framework';
+import { fetchAlbumPhotos } from '@apps-in-toss/native-modules';
+import { FetchAlbumPhotosPermissionError } from '@apps-in-toss/types';
+import { useNavigation } from '@granite-js/react-native';
 
 const GUIDE_IMAGES = [
     {
@@ -28,9 +33,6 @@ const GUIDE_IMAGES = [
     },
 ];
 
-// @ts-ignore
-import { showImagePicker } from '@apps-in-toss/framework';
-import { useNavigation } from '@granite-js/react-native';
 
 export default function UploadGuideScreen() {
     const navigation = useNavigation();
@@ -38,21 +40,55 @@ export default function UploadGuideScreen() {
     const [isPhotoSheetOpen, setIsPhotoSheetOpen] = React.useState(false);
 
     const handleSelectPhoto = async (type: 'camera' | 'library') => {
-        try {
-            const result = await showImagePicker({
-                count: 10,
-                type: type === 'camera' ? 'camera' : 'limit',
-            });
+        if (type === 'library') {
+            try {
+                console.log('fetchAlbumPhotos called');
+                // @ts-ignore
+                const permission = await fetchAlbumPhotos.getPermission();
+                console.log('Permission status:', permission);
 
-            if (result && result.length > 0) {
-                // Granite Navigation: navigate back to report with photos
-                // Or navigate specifically
-                navigation.navigate('/report', {
-                    newPhotos: result // Pass as newPhotos to differentiate
-                } as any);
+                if (permission === 'denied' || permission === 'notDetermined') {
+                    // @ts-ignore
+                    const result = await fetchAlbumPhotos.openPermissionDialog();
+                    if (result === 'denied') return;
+                }
+
+                // @ts-ignore
+                const response = await fetchAlbumPhotos({
+                    maxCount: 10,
+                    maxWidth: 1024,
+                    base64: false,
+                });
+
+                if (response && response.length > 0) {
+                    const newPhotos = response.map((img: any) => img.dataUri);
+                    navigation.navigate('/report', {
+                        newPhotos: newPhotos
+                    } as any);
+                }
+            } catch (error) {
+                // @ts-ignore
+                if (error instanceof FetchAlbumPhotosPermissionError) {
+                    // @ts-ignore
+                    await fetchAlbumPhotos.openPermissionDialog();
+                }
+                console.error('앨범을 가져오는 데 실패했어요:', error);
             }
-        } catch (e) {
-            console.error(e);
+        } else {
+            try {
+                const result = await showImagePicker({
+                    count: 10,
+                    type: 'camera',
+                });
+
+                if (result && result.length > 0) {
+                    navigation.navigate('/report', {
+                        newPhotos: result
+                    } as any);
+                }
+            } catch (e) {
+                console.error(e);
+            }
         }
     };
 
@@ -128,11 +164,9 @@ export default function UploadGuideScreen() {
                         </View>
                     </View>
                 </ScrollView>
-
                 <FixedBottomCTA onPress={() => setIsPhotoSheetOpen(true)}>사진 업로드하기</FixedBottomCTA>
-
-
             </FixedBottomCTAProvider>
+
             <PhotoOptionBottomSheet
                 isOpen={isPhotoSheetOpen}
                 onClose={() => setIsPhotoSheetOpen(false)}
