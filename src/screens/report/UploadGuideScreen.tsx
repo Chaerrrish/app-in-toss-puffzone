@@ -4,10 +4,8 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { theme } from '@/shared/styles/theme';
 import { Asset, FixedBottomCTA, FixedBottomCTAProvider } from '@toss/tds-react-native';
 import PhotoOptionBottomSheet from './components/PhotoOptionBottomSheet';
-// @ts-ignore
-import { showImagePicker } from '@apps-in-toss/framework';
-import { fetchAlbumPhotos } from '@apps-in-toss/native-modules';
-import { FetchAlbumPhotosPermissionError } from '@apps-in-toss/types';
+import { fetchAlbumPhotos, openCamera } from '@apps-in-toss/native-modules';
+import { FetchAlbumPhotosPermissionError, OpenCameraPermissionError } from '@apps-in-toss/types';
 import { useNavigation } from '@granite-js/react-native';
 
 const GUIDE_IMAGES = [
@@ -42,18 +40,17 @@ export default function UploadGuideScreen() {
     const handleSelectPhoto = async (type: 'camera' | 'library') => {
         if (type === 'library') {
             try {
-                console.log('fetchAlbumPhotos called');
-                // @ts-ignore
-                const permission = await fetchAlbumPhotos.getPermission();
-                console.log('Permission status:', permission);
+                console.log('Starting library flow');
+                if (typeof fetchAlbumPhotos.getPermission === 'function') {
+                    const permission = await fetchAlbumPhotos.getPermission();
+                    console.log('Library Permission:', permission);
 
-                if (permission === 'denied' || permission === 'notDetermined') {
-                    // @ts-ignore
-                    const result = await fetchAlbumPhotos.openPermissionDialog();
-                    if (result === 'denied') return;
+                    if (permission === 'denied' || permission === 'notDetermined') {
+                        const result = await fetchAlbumPhotos.openPermissionDialog();
+                        if (result === 'denied') return;
+                    }
                 }
 
-                // @ts-ignore
                 const response = await fetchAlbumPhotos({
                     maxCount: 10,
                     maxWidth: 1024,
@@ -67,27 +64,41 @@ export default function UploadGuideScreen() {
                     } as any);
                 }
             } catch (error) {
-                // @ts-ignore
+                console.error('Library Error:', error);
                 if (error instanceof FetchAlbumPhotosPermissionError) {
-                    // @ts-ignore
+                    console.log('Library permission error caught');
                     await fetchAlbumPhotos.openPermissionDialog();
                 }
-                console.error('앨범을 가져오는 데 실패했어요:', error);
             }
         } else {
             try {
-                const result = await showImagePicker({
-                    count: 10,
-                    type: 'camera',
+                console.log('Starting camera flow');
+                if (typeof openCamera.getPermission === 'function') {
+                    const permission = await openCamera.getPermission();
+                    console.log('Camera Permission:', permission);
+
+                    if (permission === 'denied' || permission === 'notDetermined') {
+                        const result = await openCamera.openPermissionDialog();
+                        if (result === 'denied') return;
+                    }
+                }
+                const response = await openCamera({
+                    base64: false,
+                    maxWidth: 1024,
                 });
 
-                if (result && result.length > 0) {
+                if (response) {
+                    console.log('Camera success');
                     navigation.navigate('/report', {
-                        newPhotos: result
+                        newPhotos: [response.dataUri]
                     } as any);
                 }
-            } catch (e) {
-                console.error(e);
+            } catch (error) {
+                console.error('Camera Error:', error);
+                if (error instanceof OpenCameraPermissionError) {
+                    console.log('Camera permission error caught');
+                    await openCamera.openPermissionDialog();
+                }
             }
         }
     };
