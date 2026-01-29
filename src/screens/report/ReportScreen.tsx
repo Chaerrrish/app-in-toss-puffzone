@@ -10,7 +10,7 @@ import ReportFeatureSection from "./widgets/ReportFeatureSection";
 import ReportImageSection from "./widgets/ReportImageSection";
 import { ReportFormData } from "./types";
 import { FixedBottomCTA, FixedBottomCTAProvider } from "@toss/tds-react-native";
-import { createZoneWithRequiredImage } from "@/shared/api/report_zone";
+import { reportZone } from "@/shared/api/report_zone";
 
 export default function ReportScreen() {
     const params = Route.useParams() as any;
@@ -58,7 +58,13 @@ export default function ReportScreen() {
 
         setIsSubmitting(true);
         try {
-            const result = await createZoneWithRequiredImage({
+            const imageFiles = formData.photos.map(uri => ({
+                uri,
+                type: 'image/jpeg', // Default or infer
+                name: uri.split('/').pop() || 'upload.jpg',
+            }));
+
+            const result = await reportZone({
                 name: formData.name,
                 lat: Number(params.latitude),
                 lng: Number(params.longitude),
@@ -68,11 +74,7 @@ export default function ReportScreen() {
                 category: formData.category,
                 features: formData.features,
                 // userId: User ID from auth context?
-            }, {
-                uri: formData.photos[0]!,
-                type: 'image/jpeg', // Mime type might need deduction
-                name: 'upload.jpg'
-            });
+            }, imageFiles);
 
             if (result.success) {
                 Alert.alert('제보 완료', '흡연구역 제보가 완료되었습니다!', [

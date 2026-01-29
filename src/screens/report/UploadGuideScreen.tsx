@@ -32,8 +32,11 @@ const GUIDE_IMAGES = [
 ];
 
 
+import { UploadGuideRoute } from './route';
+
 export default function UploadGuideScreen() {
     const navigation = useNavigation();
+    const params = UploadGuideRoute.useParams();
 
     const [isPhotoSheetOpen, setIsPhotoSheetOpen] = React.useState(false);
 
@@ -59,9 +62,11 @@ export default function UploadGuideScreen() {
 
                 if (response && response.length > 0) {
                     const newPhotos = response.map((img: any) => img.dataUri);
-                    navigation.navigate('/report', {
-                        newPhotos: newPhotos
-                    } as any);
+                    // Use callback if available, otherwise fallback (though fallback might not work as intended if we want to preserve state)
+                    if (params?.onPhotosSelected) {
+                        params.onPhotosSelected(newPhotos);
+                    }
+                    navigation.goBack();
                 }
             } catch (error) {
                 console.error('Library Error:', error);
@@ -89,9 +94,10 @@ export default function UploadGuideScreen() {
 
                 if (response) {
                     console.log('Camera success');
-                    navigation.navigate('/report', {
-                        newPhotos: [response.dataUri]
-                    } as any);
+                    if (params?.onPhotosSelected) {
+                        params.onPhotosSelected([response.dataUri]);
+                    }
+                    navigation.goBack();
                 }
             } catch (error) {
                 console.error('Camera Error:', error);
