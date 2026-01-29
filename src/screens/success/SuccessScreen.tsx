@@ -1,10 +1,12 @@
 import { View } from "react-native";
 import { Lottie, Spacing } from "@granite-js/react-native";
-import { Asset, Button, FixedBottomCTA, FixedBottomCTAProvider, Txt } from "@toss/tds-react-native";
+import { Asset, BottomSheet, Button, FixedBottomCTA, FixedBottomCTAProvider, Txt } from "@toss/tds-react-native";
 import { useAdaptive } from "@toss/tds-react-native/private";
+import { useState } from "react";
 
 export default function SuccessScreen() {
     const adaptive = useAdaptive();
+    const [open, setOpen] = useState(false);
     return (
         <>
             <View style={{ alignItems: 'center', paddingHorizontal: 24 }}>
@@ -45,12 +47,41 @@ export default function SuccessScreen() {
                             display="block"
                             disabled={false}
                             loading={false}
+                            onPress={() => { setOpen(true) }}
                         >
-                            광고 보고 20p 더 받기
+                            확인했어요
                         </Button>
                     }
                 />
             </FixedBottomCTAProvider>
+            <BottomSheet.Root open={open} onClose={() => { setOpen(false) }}>
+                <Spacing size={16} />
+                <BottomSheet.Header>{`광고 시청 후 \n흡연구역을 하나 더 제보할 수 있어요`}</BottomSheet.Header>
+                <BottomSheet.HeaderDescription>흡연구역 하나 더 제보 후 20p를 추가로 받아가세요</BottomSheet.HeaderDescription>
+                <BottomSheet.CTA.Double
+                    leftButton={
+                        <Button
+                            type="primary"
+                            disabled={false}
+                            style="fill"
+                            display="block"
+                        >
+                            광고 보고 포인트 더 받기
+                        </Button>
+                    }
+                    rightButton={
+                        <Button
+                            type="dark"
+                            disabled={false}
+                            style="weak"
+                            display="block"
+                        >
+                            닫기
+                        </Button>
+                    }
+                />
+            </BottomSheet.Root>
         </>
     );
 }
+
