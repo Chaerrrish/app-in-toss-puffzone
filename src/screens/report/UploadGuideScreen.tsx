@@ -1,8 +1,12 @@
 
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { theme } from '@/shared/styles/theme';
 import { Asset, FixedBottomCTA, FixedBottomCTAProvider } from '@toss/tds-react-native';
+import PhotoOptionBottomSheet from './components/PhotoOptionBottomSheet';
+import { fetchAlbumPhotos, openCamera } from '@apps-in-toss/native-modules';
+import { FetchAlbumPhotosPermissionError, OpenCameraPermissionError } from '@apps-in-toss/types';
+import { useNavigation } from '@granite-js/react-native';
 
 const GUIDE_IMAGES = [
     {
@@ -27,94 +31,165 @@ const GUIDE_IMAGES = [
     },
 ];
 
-interface UploadGuideProps {
-    photoCount?: number;
-    onImagesSelected?: (assets: any[]) => void;
-    onGuideCompleted?: () => void;
-}
 
-export default function UploadGuideScreen({ photoCount = 0, onImagesSelected = () => { }, onGuideCompleted }: UploadGuideProps) {
+import { UploadGuideRoute } from './route';
 
-    // Mock handler
-    const handleOpenSheet = () => {
-        if (onGuideCompleted) onGuideCompleted();
-        console.log('Open sheet');
+export default function UploadGuideScreen() {
+    const navigation = useNavigation();
+    const params = UploadGuideRoute.useParams();
+
+    const [isPhotoSheetOpen, setIsPhotoSheetOpen] = React.useState(false);
+
+    const handleSelectPhoto = async (type: 'camera' | 'library') => {
+        if (type === 'library') {
+            try {
+                console.log('Starting library flow');
+                if (typeof fetchAlbumPhotos.getPermission === 'function') {
+                    const permission = await fetchAlbumPhotos.getPermission();
+                    console.log('Library Permission:', permission);
+
+                    if (permission === 'denied' || permission === 'notDetermined') {
+                        const result = await fetchAlbumPhotos.openPermissionDialog();
+                        if (result === 'denied') return;
+                    }
+                }
+
+                const response = await fetchAlbumPhotos({
+                    maxCount: 10,
+                    maxWidth: 1024,
+                    base64: false,
+                });
+
+                if (response && response.length > 0) {
+                    const newPhotos = response.map((img: any) => img.dataUri);
+                    // Use callback if available, otherwise fallback (though fallback might not work as intended if we want to preserve state)
+                    if (params?.onPhotosSelected) {
+                        params.onPhotosSelected(newPhotos);
+                    }
+                    navigation.goBack();
+                }
+            } catch (error) {
+                console.error('Library Error:', error);
+                if (error instanceof FetchAlbumPhotosPermissionError) {
+                    console.log('Library permission error caught');
+                    await fetchAlbumPhotos.openPermissionDialog();
+                }
+            }
+        } else {
+            try {
+                console.log('Starting camera flow');
+                if (typeof openCamera.getPermission === 'function') {
+                    const permission = await openCamera.getPermission();
+                    console.log('Camera Permission:', permission);
+
+                    if (permission === 'denied' || permission === 'notDetermined') {
+                        const result = await openCamera.openPermissionDialog();
+                        if (result === 'denied') return;
+                    }
+                }
+                const response = await openCamera({
+                    base64: false,
+                    maxWidth: 1024,
+                });
+
+                if (response) {
+                    console.log('Camera success');
+                    if (params?.onPhotosSelected) {
+                        params.onPhotosSelected([response.dataUri]);
+                    }
+                    navigation.goBack();
+                }
+            } catch (error) {
+                console.error('Camera Error:', error);
+                if (error instanceof OpenCameraPermissionError) {
+                    console.log('Camera permission error caught');
+                    await openCamera.openPermissionDialog();
+                }
+            }
+        }
     };
 
     return (
-        <FixedBottomCTAProvider>
-            <ScrollView
-                contentContainerStyle={styles.scrollContent}
-                showsVerticalScrollIndicator={false}
-                style={styles.scrollView}
-            >
-                <View style={styles.header}>
-                    <Text style={styles.title}>사진 업로드 안내</Text>
-                    <Text style={styles.subtitle}>아래 가이드를 참고해 사진을 추가해주세요</Text>
-                </View>
-
-                <View style={styles.sectionContainer}>
-                    {/* Good Examples */}
-                    <View style={styles.subSection}>
-                        <View style={styles.sectionHeaderRow}>
-                            <Asset.Icon name="icon-thumb-up" />
-                            <Text style={styles.sectionTitle}>이런 사진을 올려주세요</Text>
-                        </View>
-                        <View style={styles.tipBox}>
-                            <Text style={styles.tipText}>
-                                1. 실제 흡연공간을 촬영해주세요{'\n'}
-                                2. 사용자가 주변 환경을 쉽게 이해할 수 있는 사진을 권장해요
-                            </Text>
-                        </View>
-                        <View style={styles.imageRow}>
-                            {GUIDE_IMAGES.slice(0, 2).map((item, index) => (
-                                <View key={index} style={styles.imageContainer}>
-                                    <Asset.Image
-                                        source={{ uri: item.image }}
-                                        frameShape={{ width: 173, height: 120 }}
-                                        scaleType="crop"
-                                        style={{ borderRadius: 8, backgroundColor: theme.colors.gray[95] }}
-                                    />
-                                    <Text style={styles.imageLabel}>{item.label}</Text>
-                                </View>
-                            ))}
-                        </View>
+        <>
+            <FixedBottomCTAProvider>
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                    style={styles.scrollView}
+                >
+                    <View style={styles.header}>
+                        <Text style={styles.title}>사진 업로드 안내</Text>
+                        <Text style={styles.subtitle}>아래 가이드를 참고해 사진을 추가해주세요</Text>
                     </View>
 
-                    <View style={styles.divider} />
+                    <View style={styles.sectionContainer}>
+                        {/* Good Examples */}
+                        <View style={styles.subSection}>
+                            <View style={styles.sectionHeaderRow}>
+                                <Asset.Icon name="icon-thumb-up" />
+                                <Text style={styles.sectionTitle}>이런 사진을 올려주세요</Text>
+                            </View>
+                            <View style={styles.tipBox}>
+                                <Text style={styles.tipText}>
+                                    1. 실제 흡연공간을 촬영해주세요{'\n'}
+                                    2. 사용자가 주변 환경을 쉽게 이해할 수 있는 사진을 권장해요
+                                </Text>
+                            </View>
+                            <View style={styles.imageRow}>
+                                {GUIDE_IMAGES.slice(0, 2).map((item, index) => (
+                                    <View key={index} style={styles.imageContainer}>
+                                        <Asset.Image
+                                            source={{ uri: item.image }}
+                                            frameShape={{ width: 173, height: 120 }}
+                                            scaleType="crop"
+                                            style={{ borderRadius: 8, backgroundColor: theme.colors.gray[95] }}
+                                        />
+                                        <Text style={styles.imageLabel}>{item.label}</Text>
+                                    </View>
+                                ))}
+                            </View>
+                        </View>
 
-                    {/* Bad Examples */}
-                    <View style={styles.subSection}>
-                        <View style={styles.sectionHeaderRow}>
-                            <Asset.Icon name="icon-siren" />
-                            <Text style={styles.sectionTitle}>이런 사진은 피해주세요</Text>
-                        </View>
-                        <View style={styles.tipBox}>
-                            <Text style={styles.tipText}>
-                                1. 근접 촬영한 사진{'\n'}
-                                2. 흡연구역과 관련 없는 사진{'\n'}
-                                3. 잘 안 보이는 사진 (낮은 해상도, 흔들린 사진, 너무 어둡거나 밝은 사진)
-                            </Text>
-                        </View>
-                        <View style={styles.imageRow}>
-                            {GUIDE_IMAGES.slice(2, 5).map((item, index) => (
-                                <View key={index} style={styles.imageContainer}>
-                                    <Asset.Image
-                                        source={{ uri: item.image }}
-                                        frameShape={{ width: 114, height: 96 }}
-                                        scaleType="crop"
-                                        style={{ borderRadius: 8, backgroundColor: theme.colors.gray[95] }}
-                                    />
-                                    <Text style={styles.imageLabel}>{item.label}</Text>
-                                </View>
-                            ))}
+                        <View style={styles.divider} />
+
+                        {/* Bad Examples */}
+                        <View style={styles.subSection}>
+                            <View style={styles.sectionHeaderRow}>
+                                <Asset.Icon name="icon-siren" />
+                                <Text style={styles.sectionTitle}>이런 사진은 피해주세요</Text>
+                            </View>
+                            <View style={styles.tipBox}>
+                                <Text style={styles.tipText}>
+                                    1. 근접 촬영한 사진{'\n'}
+                                    2. 흡연구역과 관련 없는 사진{'\n'}
+                                    3. 잘 안 보이는 사진 (낮은 해상도, 흔들린 사진, 너무 어둡거나 밝은 사진)
+                                </Text>
+                            </View>
+                            <View style={styles.imageRow}>
+                                {GUIDE_IMAGES.slice(2, 5).map((item, index) => (
+                                    <View key={index} style={styles.imageContainer}>
+                                        <Asset.Image
+                                            source={{ uri: item.image }}
+                                            frameShape={{ width: 114, height: 96 }}
+                                            scaleType="crop"
+                                            style={{ borderRadius: 8, backgroundColor: theme.colors.gray[95] }}
+                                        />
+                                        <Text style={styles.imageLabel}>{item.label}</Text>
+                                    </View>
+                                ))}
+                            </View>
                         </View>
                     </View>
-                </View>
-            </ScrollView>
+                </ScrollView>
+                <FixedBottomCTA onPress={() => setIsPhotoSheetOpen(true)}>사진 업로드하기</FixedBottomCTA>
+            </FixedBottomCTAProvider>
 
-            <FixedBottomCTA>제보하기</FixedBottomCTA>
-        </FixedBottomCTAProvider>
+            <PhotoOptionBottomSheet
+                isOpen={isPhotoSheetOpen}
+                onClose={() => setIsPhotoSheetOpen(false)}
+                onSelect={handleSelectPhoto}
+            />
+        </>
     );
 }
 

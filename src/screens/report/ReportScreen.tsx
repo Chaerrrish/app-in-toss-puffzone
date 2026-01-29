@@ -1,6 +1,6 @@
 import { theme } from "@/shared/styles/theme";
-import { useState } from 'react';
-import { ScrollView, StyleSheet } from "react-native";
+import { useState, useEffect } from 'react';
+import { ScrollView, StyleSheet, Alert } from "react-native";
 import { Route } from "./route";
 import { useNavigation } from "@granite-js/react-native";
 import ReportLocationSection from "./widgets/ReportLocationSection";
@@ -10,9 +10,10 @@ import ReportFeatureSection from "./widgets/ReportFeatureSection";
 import ReportImageSection from "./widgets/ReportImageSection";
 import { ReportFormData } from "./types";
 import { FixedBottomCTA, FixedBottomCTAProvider } from "@toss/tds-react-native";
+import { reportZone } from "@/shared/api/report_zone";
 
 export default function ReportScreen() {
-    const params = Route.useParams();
+    const params = Route.useParams() as any;
     const navigation = useNavigation();
 
     // Form State
@@ -24,9 +25,69 @@ export default function ReportScreen() {
         photos: [],
     });
     const [infoModal, setInfoModal] = useState<ReportInfoModalType>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        if (params.newPhotos && Array.isArray(params.newPhotos)) {
+            // Append new photos
+            const newUris = params.newPhotos.map((p: any) => p.uri || p).filter(Boolean);
+            setFormData(prev => {
+                // Avoid duplicates basic check
+                const combined = [...prev.photos, ...newUris];
+                // Unique
+                const unique = Array.from(new Set(combined));
+                return { ...prev, photos: unique };
+            });
+        }
+    }, [params.newPhotos]);
 
     const updateForm = (data: Partial<ReportFormData>) => {
         setFormData(prev => ({ ...prev, ...data }));
+    };
+
+    const handleSubmit = async () => {
+        if (formData.photos.length === 0) {
+            Alert.alert('알림', '최소 1장의 사진을 등록해주세요.');
+            return;
+        }
+
+        if (!formData.name) {
+            Alert.alert('알림', '장소명을 입력해주세요.');
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const imageFiles = formData.photos.map(uri => ({
+                uri,
+                type: 'image/jpeg', // Default or infer
+                name: uri.split('/').pop() || 'upload.jpg',
+            }));
+
+            const result = await reportZone({
+                name: formData.name,
+                lat: Number(params.latitude),
+                lng: Number(params.longitude),
+                kind: 'SMOKING', // Default for now
+                address: params.address,
+                description: formData.description,
+                category: formData.category,
+                features: formData.features,
+                // userId: User ID from auth context?
+            }, imageFiles);
+
+            if (result.success) {
+                Alert.alert('제보 완료', '흡연구역 제보가 완료되었습니다!\n제보하신 흡연구역은 퍼프존 앱에서 확인 가능합니다.', [
+                    { text: '확인', onPress: () => navigation.navigate('/') }
+                ]);
+            } else {
+                Alert.alert('제보 실패', result.error || '알 수 없는 오류가 발생했습니다.');
+            }
+        } catch (e: any) {
+            Alert.alert('오류', e.message);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -41,7 +102,7 @@ export default function ReportScreen() {
             }}
         >
             <ReportLocationSection
-                address={params.address}
+                address={params.address ?? ''}
                 latitude={params.latitude}
                 longitude={params.longitude}
             />
@@ -63,7 +124,7 @@ export default function ReportScreen() {
                 formData={formData}
                 updateForm={updateForm}
             />
-            <FixedBottomCTA loading={false} onPress={() => { navigation.navigate('/upload-guide') }}>다음</FixedBottomCTA>
+            <FixedBottomCTA loading={isSubmitting} onPress={handleSubmit}>제보하기</FixedBottomCTA>
         </FixedBottomCTAProvider>
     );
 }

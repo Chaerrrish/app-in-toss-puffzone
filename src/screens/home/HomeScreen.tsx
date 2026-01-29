@@ -110,7 +110,7 @@ export default function HomeScreen() {
         />
 
 
-        <FixedBottomCTA loading={false} onPress={() => { navigation.navigate('/location') }}>시작하기</FixedBottomCTA>
+        <FixedBottomCTA loading={false} onPress={handleLogin}>시작하기</FixedBottomCTA>
       </FixedBottomCTAProvider>
     </>
   );

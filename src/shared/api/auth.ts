@@ -3,7 +3,7 @@
  */
 
 // TODO: Replace with actual environment variable or config
-const BASE_URL = 'https://word-gmc-degrees-controlled.trycloudflare.com';
+const BASE_URL = 'https://www.puffzone.co.kr';
 
 interface LoginWithTossResponse {
     success: boolean;
@@ -19,6 +19,8 @@ export const loginWithToss = async (code: string): Promise<LoginWithTossResponse
             },
             body: JSON.stringify({ code }),
         });
+
+        console.log(response);
 
         if (!response.ok) {
             console.error('Toss login failed:', response.status, response.statusText);
