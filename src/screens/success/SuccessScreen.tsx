@@ -68,24 +68,39 @@ export default function SuccessScreen() {
                 <Spacing size={16} />
                 <BottomSheet.Header>{`광고 시청 후 \n흡연구역을 하나 더 제보할 수 있어요`}</BottomSheet.Header>
                 <BottomSheet.HeaderDescription>흡연구역 추가 제보 후 20p 더 받아가세요</BottomSheet.HeaderDescription>
-                <BottomSheet.CTA
-                    type="primary"
-                    disabled={false}
-                    style="fill"
-                    display="block"
-                    textStyle={{ paddingLeft: 8 }}
-                    containerStyle={{ paddingLeft: 16 }}
-                    leftAccessory={
-                        <Badge size="small" type="green" badgeStyle="fill">
-                            AD
-                        </Badge>}
-                >
-                    광고 보고 포인트 더 받기
-                </BottomSheet.CTA>
+                <BottomSheet.CTA.Double
+                    leftButton={
+                        <Button
+                            type="primary"
+                            style="fill"
+                            display="block"
+                            disabled={false}
+                            textStyle={{ paddingLeft: 8 }}
+                            containerStyle={{ paddingLeft: 16 }}
+                            leftAccessory={
+                                <Badge size="small" type="green" badgeStyle="fill">
+                                    AD
+                                </Badge>}
+                        >
+                            광고 보고 20p 더 받기
+                        </Button>
+                    }
+                    rightButton={
+                        <Button
+                            type="dark"
+                            style="weak"
+                            display="block"
+                            disabled={false}
+                            loading={false}
+                        >
+                            닫기
+                        </Button>
+                    }
+                />
             </BottomSheet.Root>
             <Toast
                 open={isToastOpen}
-                text="완료되었어요"
+                text="포인트가 지급되었어요"
                 position="top"
                 icon={<Toast.LottieIcon preset type="complete" />}
                 onClose={() => setIsToastOpen(false)}

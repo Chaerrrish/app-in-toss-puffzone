@@ -138,7 +138,7 @@ export default function ReportScreen() {
                             <Post.Paragraph typography="t6">포인트 적립은 하루 5번(최대 100p)까지 가능합니다.</Post.Paragraph>
                         </Post.Li>
                         <Post.Li>
-                            <Post.Paragraph typography="t6">지급된 포인트는 [혜택 -> 내 포인트]에서 확인하실 수 있습니다.</Post.Paragraph>
+                            <Post.Paragraph typography="t6">{`지급된 포인트는 [혜택 -> 내 포인트] 에서 확인하실 수 있습니다.`}</Post.Paragraph>
                         </Post.Li>
                         <Post.Li>
                             <Post.Paragraph typography="t6">네트워크 장애 등으로 인해 포인트 지급이 지연될 수 있습니다.</Post.Paragraph>
