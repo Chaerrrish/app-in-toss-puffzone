@@ -1,5 +1,5 @@
 import { theme } from "@/shared/styles/theme";
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, Alert } from "react-native";
 import { Route } from "./route";
 import { useNavigation } from "@granite-js/react-native";
@@ -9,7 +9,7 @@ import ReportCategorySection from "./widgets/ReportCategorySection";
 import ReportFeatureSection from "./widgets/ReportFeatureSection";
 import ReportImageSection from "./widgets/ReportImageSection";
 import { ReportFormData } from "./types";
-import { FixedBottomCTA, FixedBottomCTAProvider } from "@toss/tds-react-native";
+import { BottomInfo, FixedBottomCTA, FixedBottomCTAProvider, Post, Toast } from "@toss/tds-react-native";
 import { reportZone } from "@/shared/api/report_zone";
 
 export default function ReportScreen() {
@@ -26,6 +26,7 @@ export default function ReportScreen() {
     });
     const [infoModal, setInfoModal] = useState<ReportInfoModalType>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isToastOpen, setIsToastOpen] = useState(false);
 
     useEffect(() => {
         if (params.newPhotos && Array.isArray(params.newPhotos)) {
@@ -91,41 +92,56 @@ export default function ReportScreen() {
     };
 
     return (
-        <FixedBottomCTAProvider
-            wrapper={ScrollView}
-            wrapperProps={{
-                contentContainerStyle: styles.scrollContent,
-                onTouchStart: () => {
-                    if (infoModal) setInfoModal(null); // Close modal on outside tap
-                },
-                style: styles.container,
-            }}
-        >
-            <ReportLocationSection
-                address={params.address ?? ''}
-                latitude={params.latitude}
-                longitude={params.longitude}
-            />
-            <ReportFormSection
-                formData={formData}
-                updateForm={updateForm}
-                infoModal={infoModal}
-                onInfoModalChange={setInfoModal}
-            />
-            <ReportCategorySection
-                formData={formData}
-                updateForm={updateForm}
-            />
-            <ReportFeatureSection
-                formData={formData}
-                updateForm={updateForm}
-            />
-            <ReportImageSection
-                formData={formData}
-                updateForm={updateForm}
-            />
-            <FixedBottomCTA loading={isSubmitting} onPress={handleSubmit}>제보하기</FixedBottomCTA>
-        </FixedBottomCTAProvider>
+        <>
+            <FixedBottomCTAProvider
+                wrapper={ScrollView}
+                wrapperProps={{
+                    contentContainerStyle: styles.scrollContent,
+                    onTouchStart: () => {
+                        if (infoModal) setInfoModal(null); // Close modal on outside tap
+                    },
+                    style: styles.container,
+                }}
+            >
+                <ReportLocationSection
+                    address={params.address ?? ''}
+                    latitude={params.latitude}
+                    longitude={params.longitude}
+                />
+                <ReportFormSection
+                    formData={formData}
+                    updateForm={updateForm}
+                    infoModal={infoModal}
+                    onInfoModalChange={setInfoModal}
+                />
+                <ReportCategorySection
+                    formData={formData}
+                    updateForm={updateForm}
+                />
+                <ReportFeatureSection
+                    formData={formData}
+                    updateForm={updateForm}
+                />
+                <ReportImageSection
+                    formData={formData}
+                    updateForm={updateForm}
+                />
+                <BottomInfo>
+                    <Post.Ul style={{ paddingHorizontal: 0 }}>
+                        <Post.Li style={{ marginBottom: 8 }}>
+                            리스트
+                        </Post.Li>
+                        <Post.Li>
+                            리스트
+                        </Post.Li>
+                    </Post.Ul>
+                </BottomInfo>
+                <FixedBottomCTA loading={isSubmitting} onPress={() => { navigation.navigate('/success') }}>
+                    제보하기
+                </FixedBottomCTA>
+            </FixedBottomCTAProvider>
+
+        </>
     );
 }
 
