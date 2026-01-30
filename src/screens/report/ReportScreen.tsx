@@ -1,15 +1,15 @@
 import { theme } from "@/shared/styles/theme";
-import { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, Alert } from "react-native";
+import React, { useState, useEffect } from 'react';
+import { ScrollView, StyleSheet, Alert, View } from "react-native";
 import { Route } from "./route";
-import { useNavigation } from "@granite-js/react-native";
+import { Spacing, useNavigation } from "@granite-js/react-native";
 import ReportLocationSection from "./widgets/ReportLocationSection";
 import ReportFormSection, { ReportInfoModalType } from "./widgets/ReportFormSection";
 import ReportCategorySection from "./widgets/ReportCategorySection";
 import ReportFeatureSection from "./widgets/ReportFeatureSection";
 import ReportImageSection from "./widgets/ReportImageSection";
 import { ReportFormData } from "./types";
-import { FixedBottomCTA, FixedBottomCTAProvider } from "@toss/tds-react-native";
+import { BottomInfo, FixedBottomCTA, FixedBottomCTAProvider, Post, Toast } from "@toss/tds-react-native";
 import { reportZone } from "@/shared/api/report_zone";
 
 export default function ReportScreen() {
@@ -26,6 +26,7 @@ export default function ReportScreen() {
     });
     const [infoModal, setInfoModal] = useState<ReportInfoModalType>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isToastOpen, setIsToastOpen] = useState(false);
 
     useEffect(() => {
         if (params.newPhotos && Array.isArray(params.newPhotos)) {
@@ -91,41 +92,65 @@ export default function ReportScreen() {
     };
 
     return (
-        <FixedBottomCTAProvider
-            wrapper={ScrollView}
-            wrapperProps={{
-                contentContainerStyle: styles.scrollContent,
-                onTouchStart: () => {
-                    if (infoModal) setInfoModal(null); // Close modal on outside tap
-                },
-                style: styles.container,
-            }}
-        >
-            <ReportLocationSection
-                address={params.address ?? ''}
-                latitude={params.latitude}
-                longitude={params.longitude}
-            />
-            <ReportFormSection
-                formData={formData}
-                updateForm={updateForm}
-                infoModal={infoModal}
-                onInfoModalChange={setInfoModal}
-            />
-            <ReportCategorySection
-                formData={formData}
-                updateForm={updateForm}
-            />
-            <ReportFeatureSection
-                formData={formData}
-                updateForm={updateForm}
-            />
-            <ReportImageSection
-                formData={formData}
-                updateForm={updateForm}
-            />
-            <FixedBottomCTA loading={isSubmitting} onPress={handleSubmit}>제보하기</FixedBottomCTA>
-        </FixedBottomCTAProvider>
+        <>
+            <FixedBottomCTAProvider
+                wrapper={ScrollView}
+                wrapperProps={{
+                    onTouchStart: () => {
+                        if (infoModal) setInfoModal(null); // Close modal on outside tap
+                    },
+                    style: styles.container,
+                }}
+            >
+                <View style={styles.scrollContent}>
+                    <ReportLocationSection
+                        address={params.address ?? ''}
+                        latitude={params.latitude}
+                        longitude={params.longitude}
+                    />
+                    <ReportFormSection
+                        formData={formData}
+                        updateForm={updateForm}
+                        infoModal={infoModal}
+                        onInfoModalChange={setInfoModal}
+                    />
+                    <ReportCategorySection
+                        formData={formData}
+                        updateForm={updateForm}
+                    />
+                    <ReportFeatureSection
+                        formData={formData}
+                        updateForm={updateForm}
+                    />
+                    <ReportImageSection
+                        formData={formData}
+                        updateForm={updateForm}
+                    />
+                </View>
+                <Spacing size={24} />
+                <BottomInfo style={{ paddingHorizontal: 0 }}>
+                    <Post.H4>유의사항</Post.H4>
+                    <Post.Ul>
+                        <Post.Li>
+                            <Post.Paragraph typography="t6">퍼프존 서비스는 주식회사 포트존에서 제공합니다.</Post.Paragraph>
+                        </Post.Li>
+                        <Post.Li>
+                            <Post.Paragraph typography="t6">포인트 적립은 하루 5번(최대 100p)까지 가능합니다.</Post.Paragraph>
+                        </Post.Li>
+                        <Post.Li>
+                            <Post.Paragraph typography="t6">{`지급된 포인트는 [혜택 -> 내 포인트] 에서 확인하실 수 있습니다.`}</Post.Paragraph>
+                        </Post.Li>
+                        <Post.Li>
+                            <Post.Paragraph typography="t6">네트워크 장애 등으로 인해 포인트 지급이 지연될 수 있습니다.</Post.Paragraph>
+                        </Post.Li>
+                    </Post.Ul>
+                </BottomInfo>
+                <FixedBottomCTA loading={isSubmitting} onPress={() => { navigation.navigate('/success') }}>
+                    제보하기
+                </FixedBottomCTA>
+            </FixedBottomCTAProvider>
+
+        </>
     );
 }
 
@@ -135,8 +160,8 @@ const styles = StyleSheet.create({
         backgroundColor: theme.colors.background.primary,
     },
     scrollContent: {
-        padding: 16,
         gap: 32,
+        paddingHorizontal: 16,
     },
     sectionContainer: {
         gap: 16,
