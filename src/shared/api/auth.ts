@@ -1,9 +1,4 @@
-/**
- * Auth API Service
- */
-
-// TODO: Replace with actual environment variable or config
-const BASE_URL = 'https://www.puffzone.co.kr';
+import { apiFetch } from './client';
 
 interface LoginWithTossResponse {
     success: boolean;
@@ -12,22 +7,10 @@ interface LoginWithTossResponse {
 
 export const loginWithToss = async (code: string): Promise<LoginWithTossResponse | null> => {
     try {
-        const response = await fetch(`${BASE_URL}/api/auth/toss/start`, {
+        const data = await apiFetch<LoginWithTossResponse>('/api/auth/toss/start', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: JSON.stringify({ code }),
         });
-
-        console.log(response);
-
-        if (!response.ok) {
-            console.error('Toss login failed:', response.status, response.statusText);
-            return null;
-        }
-
-        const data = await response.json();
         return data;
     } catch (error) {
         console.error('Error logging in with Toss:', error);

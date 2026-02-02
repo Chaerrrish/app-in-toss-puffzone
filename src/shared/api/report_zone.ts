@@ -1,7 +1,6 @@
+import { apiFetch } from './client';
 
 // Client-side Zone Report API
-
-const BASE_URL = 'https://www.puffzone.co.kr';
 
 interface ZoneInput {
     name: string;
@@ -22,13 +21,6 @@ interface ImageFile {
 }
 
 /**
- * 흡연구역 제보 (이미지 필수)
- * Flow:
- * 1. [Server] Zone Init (Insert Zone + Get Signed URL)
- * 2. [Client] Upload Image (PUT to Signed URL)
- * 3. [Server] Zone Complete (Insert Image Meta)
- */
-/**
  * 흡연구역 제보 (다중 이미지 지원)
  */
 export const reportZone = async (
@@ -41,10 +33,6 @@ export const reportZone = async (
         return { success: false, error: '최소 1장의 사진이 필요합니다.' };
     }
 
-    if (imageFiles.length === 0) {
-        return { success: false, error: '최소 1장의 사진이 필요합니다.' };
-    }
-
     try {
         // --- 1st Image (Zone Creation) ---
         const firstImage = imageFiles[0]!;
@@ -52,21 +40,14 @@ export const reportZone = async (
         const firstExt = firstImage.name.split('.').pop() || 'jpg';
 
         // Step 1: Init - Create Zone & Get URL for 1st image
-        const initRes = await fetch(`${BASE_URL}/api/zone/report/init`, {
+        const initData = await apiFetch<any>('/api/zone/report/init', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 zoneData,
                 fileExt: firstExt,
             }),
         });
 
-        if (!initRes.ok) {
-            const err = await initRes.text();
-            throw new Error(`Init failed: ${initRes.status} ${err}`);
-        }
-
-        const initData = await initRes.json();
         if (!initData.success) throw new Error(initData.error);
 
         zoneId = initData.data.zoneId;
@@ -89,21 +70,19 @@ export const reportZone = async (
                 const ext = img.name.split('.').pop() || 'jpg';
 
                 // 1. Get Upload URL
-                const urlRes = await fetch(`${BASE_URL}/api/zone/report/image`, {
+                const urlData = await apiFetch<any>('/api/zone/report/presigned-url', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         zoneId,
                         fileExt: ext
                     }),
                 });
 
-                if (!urlRes.ok) throw new Error(`Failed to get upload url for image ${counter}`);
-                const urlData = await urlRes.json();
                 if (!urlData.success) throw new Error(urlData.error);
 
                 // 2. Upload & Register
-                await uploadAndRegisterImage(zoneId!, img, urlData.data);
+                await uploadAndRegisterImage(zoneId!, img, urlData);
+
                 counter++;
             }
         }
@@ -113,9 +92,7 @@ export const reportZone = async (
 
     } catch (error: any) {
         console.error('[ZoneReport] Error:', error);
-        if (zoneId) {
-            console.warn(`[ZoneReport] Clean up recommended for zone ${zoneId}`);
-        }
+        // ... Clean up ...
         return { success: false, error: error.message };
     }
 };
@@ -125,7 +102,7 @@ async function uploadAndRegisterImage(
     imageFile: ImageFile,
     uploadInfo: { signedUrl: string, path: string, fileName: string }
 ) {
-    // 1. Upload PUT
+    // 1. Upload PUT (Direct S3 upload - do not use apiFetch)
     const imageRes = await fetch(imageFile.uri);
     const blob = await imageRes.blob();
 
@@ -141,23 +118,17 @@ async function uploadAndRegisterImage(
         throw new Error(`Image upload failed: ${uploadRes.status}`);
     }
 
-    // 2. Register Meta
-    const completeRes = await fetch(`${BASE_URL}/api/zone/report/complete`, {
+    // 2. Register Meta (Server call - use apiFetch)
+    const completeData = await apiFetch<any>('/api/zone/report/upload-image', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             zoneId,
             path: uploadInfo.path,
             fileName: uploadInfo.fileName,
             fileType: imageFile.type,
-            userId: undefined // Optional, handled by zoneData usually or redundant here
+            userId: undefined
         }),
     });
 
-    if (!completeRes.ok) {
-        throw new Error(`Image registration failed`);
-    }
-
-    const completeData = await completeRes.json();
     if (!completeData.success) throw new Error(completeData.error);
 }

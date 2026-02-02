@@ -1,5 +1,4 @@
 import {
-  Asset,
   Top,
   FixedBottomCTA,
   FixedBottomCTAProvider,
@@ -8,12 +7,10 @@ import {
 import { Spacing, useNavigation } from '@granite-js/react-native';
 import { useAdaptive } from '@toss/tds-react-native/private';
 import { appLogin } from '@apps-in-toss/framework';
-import { loginWithToss } from '../../shared/api/auth';
-
-
-
-import { useState } from 'react';
-import MapIcon from '../../shared/assets/MapIcon';
+import { loginWithToss } from '@/shared/api/auth';
+import { useState, useEffect } from 'react';
+import MapIcon from '@/shared/assets/MapIcon';
+import { saveSessionToken, getSessionToken, clearSessionToken } from '@/shared/utils/storage';
 
 export default function HomeScreen() {
   const adaptive = useAdaptive();
@@ -21,21 +18,34 @@ export default function HomeScreen() {
 
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
+  // Auto-login check
+  useEffect(() => {
+    const checkSession = async () => {
+      const token = await getSessionToken();
+      if (token) {
+        console.log('Session token found, auto-logging in...');
+        navigation.navigate('/location');
+      }
+    };
+    checkSession();
+  }, []);
+
   const handleLogin = async () => {
     if (isLoggingIn) return;
     setIsLoggingIn(true);
 
     try {
       const { authorizationCode } = await appLogin();
-      console.log('Got auth code:', authorizationCode);
+      // console.log('Got auth code:', authorizationCode); // Avoid PII logging
 
       const result = await loginWithToss(authorizationCode);
 
-      if (result && result.success && result.result?.success !== false) {
-        console.log('Login successful:', result);
+      if (result && result.success && result.result?.sessionToken) {
+        // console.log('Login successful'); // Avoid logging token
+        await saveSessionToken(result.result.sessionToken);
         navigation.navigate('/location');
       } else {
-        console.error('Login failed:', result);
+        console.error('Login failed or no session token');
         // Optionally handle error (toast, alert)
       }
     } catch (error) {
