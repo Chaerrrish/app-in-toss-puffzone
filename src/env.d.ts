@@ -2,6 +2,7 @@
 type Env = {
   NAVER_MAP_APPLICATION: string;
   NAVER_MAP_CLIENT_ID: string;
+  BASE_URL: string;
 };
 
 interface ImportMeta {

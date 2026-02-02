@@ -1,16 +1,17 @@
 import { theme } from "@/shared/styles/theme";
 import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, Alert, View } from "react-native";
-import { Route } from "./route";
 import { Spacing, useNavigation } from "@granite-js/react-native";
 import ReportLocationSection from "./widgets/ReportLocationSection";
+import { ReportFormData } from "./types";
 import ReportFormSection, { ReportInfoModalType } from "./widgets/ReportFormSection";
+import { reportZone } from "@/shared/api/report_zone";
+import { BottomInfo, FixedBottomCTA, FixedBottomCTAProvider, Post } from "@toss/tds-react-native";
 import ReportCategorySection from "./widgets/ReportCategorySection";
 import ReportFeatureSection from "./widgets/ReportFeatureSection";
 import ReportImageSection from "./widgets/ReportImageSection";
-import { ReportFormData } from "./types";
-import { BottomInfo, FixedBottomCTA, FixedBottomCTAProvider, Post, Toast } from "@toss/tds-react-native";
-import { reportZone } from "@/shared/api/report_zone";
+
+import { Route } from './route';
 
 export default function ReportScreen() {
     const params = Route.useParams() as any;
@@ -26,7 +27,6 @@ export default function ReportScreen() {
     });
     const [infoModal, setInfoModal] = useState<ReportInfoModalType>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isToastOpen, setIsToastOpen] = useState(false);
 
     useEffect(() => {
         if (params.newPhotos && Array.isArray(params.newPhotos)) {
