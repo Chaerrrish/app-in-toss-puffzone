@@ -15,4 +15,3 @@ yarn-error.log
 .granite
 .swc
 .DS_Store
-granite.config.ts
