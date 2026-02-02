@@ -70,7 +70,7 @@ export const reportZone = async (
                 const ext = img.name.split('.').pop() || 'jpg';
 
                 // 1. Get Upload URL
-                const urlData = await apiFetch<any>('/api/zone/report/image', {
+                const urlData = await apiFetch<any>('/api/zone/report/presigned-url', {
                     method: 'POST',
                     body: JSON.stringify({
                         zoneId,
@@ -81,7 +81,8 @@ export const reportZone = async (
                 if (!urlData.success) throw new Error(urlData.error);
 
                 // 2. Upload & Register
-                await uploadAndRegisterImage(zoneId!, img, urlData.data);
+                await uploadAndRegisterImage(zoneId!, img, urlData);
+
                 counter++;
             }
         }
@@ -91,9 +92,7 @@ export const reportZone = async (
 
     } catch (error: any) {
         console.error('[ZoneReport] Error:', error);
-        if (zoneId) {
-            console.warn(`[ZoneReport] Clean up recommended for zone ${zoneId}`);
-        }
+        // ... Clean up ...
         return { success: false, error: error.message };
     }
 };
@@ -120,7 +119,7 @@ async function uploadAndRegisterImage(
     }
 
     // 2. Register Meta (Server call - use apiFetch)
-    const completeData = await apiFetch<any>('/api/zone/report/complete', {
+    const completeData = await apiFetch<any>('/api/zone/report/upload-image', {
         method: 'POST',
         body: JSON.stringify({
             zoneId,
