@@ -1,4 +1,5 @@
 import { getSessionToken, clearSessionToken } from '../utils/storage';
+import { authEvents } from '../utils/auth-events';
 
 // TODO: Manage this via .env or config
 // Fallback to dev tunnel if env is missing (for local dev without full env setup)
@@ -37,8 +38,8 @@ export const apiFetch = async <T = any>(
 
         if (response.status === 401 || response.status === 403) {
             await clearSessionToken();
-            // Navigation must be handled by the caller or a global event listener
-            // because we cannot use hooks here.
+            // Trigger global session expired event
+            authEvents.emit('sessionExpired');
             throw new AuthError('Session expired');
         }
 
