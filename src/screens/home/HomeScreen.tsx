@@ -46,8 +46,9 @@ export default function HomeScreen() {
 
       const result = await loginWithToss(authorizationCode);
 
-      if (result && result.success && result.result?.sessionToken) {
-        await saveSessionToken(result.result.sessionToken);
+      if (result && result.success && typeof result.result?.sessionToken === 'string') {
+        const token = result.result.sessionToken;
+        await saveSessionToken(token);
         navigation.navigate('/location');
       } else {
         console.error('Login failed or no session token');

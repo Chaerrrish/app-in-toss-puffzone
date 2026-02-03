@@ -8,8 +8,13 @@ export interface CameraState {
   zoom: number;
 }
 
+export interface NaverMapHandle {
+  animateCameraTo: (params: { latitude: number; longitude: number; zoom?: number }) => void;
+  setLocationTrackingMode: (mode: string) => void;
+}
+
 interface NaverMapSelectorProps {
-  mapRef: any;
+  mapRef: React.MutableRefObject<NaverMapHandle | null>;
   camera: CameraState;
   onCameraChange: (camera: CameraState) => void;
   onMapTap: (latitude: number, longitude: number) => void;
@@ -352,7 +357,7 @@ export function NaverMapSelector({
         }));
       }
     },
-    setLocationTrackingMode: (mode: any) => {
+    setLocationTrackingMode: (mode: string) => {
       console.log('Tracking mode not fully implemented in WebView adapter yet:', mode);
     },
   }));

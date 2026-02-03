@@ -2,7 +2,11 @@ import { apiFetch } from './client';
 
 interface LoginWithTossResponse {
     success: boolean;
-    result?: Record<string, any>; // Flexible result type for now
+    result?: {
+        sessionToken?: string;
+        // Add other fields from Toss response if needed
+        [key: string]: string | number | boolean | null | undefined | object;
+    };
 }
 
 export const loginWithToss = async (code: string): Promise<LoginWithTossResponse | null> => {

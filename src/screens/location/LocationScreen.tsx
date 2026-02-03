@@ -7,7 +7,7 @@ import { Asset, FixedBottomCTA, FixedBottomCTAProvider } from '@toss/tds-react-n
 
 // Local Components & Hooks
 import { MoveToCurrentLocationButton } from './components/MoveToCurrentLocationButton';
-import { NaverMapSelector, CameraState } from './components/NaverMapView';
+import { NaverMapSelector, CameraState, NaverMapHandle } from './components/NaverMapView';
 import { useReportForm } from './hooks/useReportForm';
 import { useReverseGeocode } from './hooks/useReverseGeocode';
 import { useMoveToCurrentLocation } from './hooks/useMoveToCurrentLocation';
@@ -30,7 +30,7 @@ export default function LocationScreen() {
     const navigation = useNavigation();
     const insets = useSafeAreaInsets();
 
-    const naverMapRef = useRef<any>(null); // Type 'any' for mock
+    const naverMapRef = useRef<NaverMapHandle>(null);
 
     const { formData, setLocation } = useReportForm();
     const { getAddressFromCoords } = useReverseGeocode();

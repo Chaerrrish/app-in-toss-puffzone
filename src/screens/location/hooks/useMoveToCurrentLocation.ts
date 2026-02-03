@@ -2,10 +2,12 @@ import { useCallback } from 'react';
 import { Alert, Linking } from 'react-native';
 import { getCurrentLocation, Accuracy } from '@apps-in-toss/framework';
 
+import { NaverMapHandle } from '../components/NaverMapView'; // Ensure proper import path
+
 interface UseMoveToCurrentLocationProps {
   mapProvider?: 'google' | 'naver';
-  googleMapRef?: any;
-  naverMapRef?: any;
+  googleMapRef?: unknown;
+  naverMapRef?: React.RefObject<NaverMapHandle>;
   onLocationUpdated: (coords: { latitude: number; longitude: number }) => void;
 }
 
@@ -35,7 +37,7 @@ export function useMoveToCurrentLocation({ naverMapRef, onLocationUpdated }: Use
         longitude: location.coords.longitude,
       };
 
-      if (naverMapRef.current) {
+      if (naverMapRef?.current) {
         console.log('[useMoveToCurrentLocation] Animate to:', currentLocation);
         naverMapRef.current.animateCameraTo({
           ...currentLocation,

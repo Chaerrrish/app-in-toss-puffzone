@@ -13,8 +13,17 @@ import ReportImageSection from "./widgets/ReportImageSection";
 
 import { Route } from './route';
 
+
+
+interface ReportScreenParams {
+    latitude: number;
+    longitude: number;
+    address: string;
+    newPhotos?: (string | { uri: string })[];
+}
+
 export default function ReportScreen() {
-    const params = Route.useParams() as any;
+    const params = Route.useParams() as unknown as ReportScreenParams;
     const navigation = useNavigation();
 
     // Form State
@@ -31,7 +40,10 @@ export default function ReportScreen() {
     useEffect(() => {
         if (params.newPhotos && Array.isArray(params.newPhotos)) {
             // Append new photos
-            const newUris = params.newPhotos.map((p: any) => p.uri || p).filter(Boolean);
+            const newUris = params.newPhotos.map((p) => {
+                if (typeof p === 'string') return p;
+                return p.uri;
+            }).filter(Boolean) as string[];
             setFormData(prev => {
                 // Avoid duplicates basic check
                 const combined = [...prev.photos, ...newUris];
@@ -82,8 +94,9 @@ export default function ReportScreen() {
             } else {
                 Alert.alert('제보 실패', result.error || '알 수 없는 오류가 발생했습니다.');
             }
-        } catch (e: any) {
-            Alert.alert('오류', e.message);
+        } catch (e: unknown) {
+            const errorMessage = e instanceof Error ? e.message : '알 수 없는 오류가 발생했습니다.';
+            Alert.alert('오류', errorMessage);
         } finally {
             setIsSubmitting(false);
         }
@@ -103,8 +116,8 @@ export default function ReportScreen() {
                 <View style={styles.scrollContent}>
                     <ReportLocationSection
                         address={params.address ?? ''}
-                        latitude={params.latitude}
-                        longitude={params.longitude}
+                        latitude={Number(params.latitude)}
+                        longitude={Number(params.longitude)}
                     />
                     <ReportFormSection
                         formData={formData}
@@ -123,6 +136,9 @@ export default function ReportScreen() {
                     <ReportImageSection
                         formData={formData}
                         updateForm={updateForm}
+                        latitude={Number(params.latitude)}
+                        longitude={Number(params.longitude)}
+                        address={params.address}
                     />
                 </View>
                 <Spacing size={24} />

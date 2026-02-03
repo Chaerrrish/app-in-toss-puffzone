@@ -9,12 +9,15 @@ export const Route = createRoute('/report', {
         latitude: zod.number(),
         longitude: zod.number(),
         address: zod.string(),
+        newPhotos: zod.array(zod.union([zod.string(), zod.object({ uri: zod.string() })])).optional(),
     }),
 });
 
 export const UploadGuideRoute = createRoute('/upload-guide', {
     component: UploadGuideScreen,
     validateParams: zod.object({
-        onPhotosSelected: zod.custom<(photos: string[]) => void>(),
+        latitude: zod.number().optional(),
+        longitude: zod.number().optional(),
+        address: zod.string().optional(),
     }),
 });

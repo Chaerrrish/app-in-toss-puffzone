@@ -8,6 +8,11 @@ import { fetchAlbumPhotos, openCamera } from '@apps-in-toss/native-modules';
 import { FetchAlbumPhotosPermissionError, OpenCameraPermissionError } from '@apps-in-toss/types';
 import { useNavigation } from '@granite-js/react-native';
 
+interface AlbumPhoto {
+    dataUri: string;
+    // Add other properties if needed
+}
+
 const GUIDE_IMAGES = [
     {
         image: 'https://puffzone.co.kr/toss/photo_example/1.png',
@@ -61,12 +66,13 @@ export default function UploadGuideScreen() {
                 });
 
                 if (response && response.length > 0) {
-                    const newPhotos = response.map((img: any) => img.dataUri);
-                    // Use callback if available, otherwise fallback (though fallback might not work as intended if we want to preserve state)
-                    if (params?.onPhotosSelected) {
-                        params.onPhotosSelected(newPhotos);
-                    }
-                    navigation.goBack();
+                    const newPhotos = response.map((img: AlbumPhoto) => img.dataUri);
+                    navigation.navigate('/report', {
+                        newPhotos,
+                        latitude: params.latitude,
+                        longitude: params.longitude,
+                        address: params.address,
+                    } as any);
                 }
             } catch (error) {
                 console.error('Library Error:', error);
@@ -94,10 +100,12 @@ export default function UploadGuideScreen() {
 
                 if (response) {
                     console.log('Camera success');
-                    if (params?.onPhotosSelected) {
-                        params.onPhotosSelected([response.dataUri]);
-                    }
-                    navigation.goBack();
+                    navigation.navigate('/report', {
+                        newPhotos: [response.dataUri],
+                        latitude: params.latitude,
+                        longitude: params.longitude,
+                        address: params.address,
+                    } as any);
                 }
             } catch (error) {
                 console.error('Camera Error:', error);

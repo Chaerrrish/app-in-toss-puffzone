@@ -9,9 +9,14 @@ const MAX_PHOTOS = 10;
 interface ReportImageSectionProps {
     formData: ReportFormData;
     updateForm: (data: Partial<ReportFormData>) => void;
+    latitude: number;
+    longitude: number;
+    address: string;
 }
 
-export default function ReportImageSection({ formData, updateForm }: ReportImageSectionProps) {
+
+
+export default function ReportImageSection({ formData, updateForm, latitude, longitude, address }: ReportImageSectionProps) {
     const navigation = useNavigation();
 
     const handleRemovePhoto = (index: number) => {
@@ -34,12 +39,10 @@ export default function ReportImageSection({ formData, updateForm }: ReportImage
                     maxCount={MAX_PHOTOS}
                     onPress={() => {
                         navigation.navigate('/upload-guide', {
-                            onPhotosSelected: (newPhotos: string[]) => {
-                                const combined = [...formData.photos, ...newPhotos];
-                                const unique = Array.from(new Set(combined));
-                                updateForm({ photos: unique });
-                            }
-                        } as any)
+                            latitude,
+                            longitude,
+                            address
+                        })
                     }}
                 />
                 {formData.photos.map((uri, index) => (
