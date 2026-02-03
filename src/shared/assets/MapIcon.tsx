@@ -1,5 +1,3 @@
-
-import React from 'react';
 import Svg, { Path } from 'react-native-svg';
 
 export default function MapIcon({ width = 62, height = 62, ...props }: { width?: number; height?: number;[key: string]: any }) {

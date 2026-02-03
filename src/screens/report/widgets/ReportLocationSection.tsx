@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import StaticNaverMapView from "@/screens/report/components/StaticNaverMapView";
 import { theme } from "@/shared/styles/theme";

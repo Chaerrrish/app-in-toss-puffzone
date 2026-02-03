@@ -1,5 +1,5 @@
 import { theme } from "@/shared/styles/theme";
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, Alert, View } from "react-native";
 import { Spacing, useNavigation } from "@granite-js/react-native";
 import ReportLocationSection from "./widgets/ReportLocationSection";

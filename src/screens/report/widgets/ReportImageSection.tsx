@@ -1,5 +1,3 @@
-
-import React from 'react';
 import { View, Text, ScrollView, StyleSheet, Pressable, Image } from 'react-native';
 import { theme } from '@/shared/styles/theme';
 import { ReportFormData } from '../types';

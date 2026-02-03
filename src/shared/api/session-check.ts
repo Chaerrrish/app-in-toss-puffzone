@@ -19,6 +19,7 @@ export const validateSession = async (): Promise<boolean> => {
         await apiFetch('/api/auth/session/verify', { method: 'POST' });
         return true;
     } catch (error) {
+        console.error(error);
         return false;
     }
 };

@@ -1,4 +1,4 @@
-import React, { useImperativeHandle, useRef, useEffect, useState, useMemo } from 'react';
+import { useImperativeHandle, useRef, useEffect, useState, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 

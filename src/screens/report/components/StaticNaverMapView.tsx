@@ -1,10 +1,10 @@
-import React, { useRef, useMemo } from 'react';
+import { useRef, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
 
 interface StaticNaverMapViewProps {
-    latitude: number;
-    longitude: number;
+  latitude: number;
+  longitude: number;
 }
 
 const NAVER_CLIENT_ID = import.meta.env.NAVER_MAP_CLIENT_ID;
@@ -166,49 +166,49 @@ const HTML_SOURCE = `
 `;
 
 export default function StaticNaverMapView({ latitude, longitude }: StaticNaverMapViewProps) {
-    const webviewRef = useRef<WebView>(null);
+  const webviewRef = useRef<WebView>(null);
 
-    const webViewSource = useMemo(() => ({
-        html: HTML_SOURCE,
-        baseUrl: BASE_URL,
-    }), []);
+  const webViewSource = useMemo(() => ({
+    html: HTML_SOURCE,
+    baseUrl: BASE_URL,
+  }), []);
 
-    // Send init message once loaded
-    const handleLoadEnd = () => {
-        if (webviewRef.current) {
-            webviewRef.current.postMessage(JSON.stringify({
-                type: 'INIT_MAP',
-                lat: latitude,
-                lng: longitude
-            }));
-        }
-    };
+  // Send init message once loaded
+  const handleLoadEnd = () => {
+    if (webviewRef.current) {
+      webviewRef.current.postMessage(JSON.stringify({
+        type: 'INIT_MAP',
+        lat: latitude,
+        lng: longitude
+      }));
+    }
+  };
 
-    return (
-        <View style={styles.container}>
-            <WebView
-                ref={webviewRef}
-                style={styles.webview}
-                source={webViewSource}
-                onLoadEnd={handleLoadEnd}
-                javaScriptEnabled={true}
-                domStorageEnabled={true}
-                scrollEnabled={false}
-                pointerEvents="none" // Ensure no interaction at RN level too
-            />
-        </View>
-    );
+  return (
+    <View style={styles.container}>
+      <WebView
+        ref={webviewRef}
+        style={styles.webview}
+        source={webViewSource}
+        onLoadEnd={handleLoadEnd}
+        javaScriptEnabled={true}
+        domStorageEnabled={true}
+        scrollEnabled={false}
+        pointerEvents="none" // Ensure no interaction at RN level too
+      />
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        width: '100%',
-        height: '100%',
-        backgroundColor: '#F2F4F6',
-    },
-    webview: {
-        flex: 1,
-        backgroundColor: 'transparent',
-    },
+  container: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#F2F4F6',
+  },
+  webview: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
 });
