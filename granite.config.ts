@@ -3,6 +3,7 @@ import { appsInToss } from '@apps-in-toss/framework/plugins';
 import { defineConfig } from '@granite-js/react-native/config';
 import { env } from '@granite-js/plugin-env';
 
+
 export default defineConfig({
   scheme: 'intoss',
   appName: 'puffzone',
@@ -23,9 +24,9 @@ export default defineConfig({
       ],
     }),
     env({
-      NAVER_MAP_APPLICATION: process.env.PUBLIC_NAVER_MAP_APPLICATION,
-      NAVER_MAP_CLIENT_ID: process.env.PUBLIC_NAVER_MAP_CLIENT_ID,
-      BASE_URL: process.env.PUBLIC_BASE_URL,
+      NAVER_MAP_APPLICATION: 'puffzone',
+      NAVER_MAP_CLIENT_ID: '51wm2hbym8',
+      BASE_URL: 'https://www.puffzone.co.kr',
     })
   ],
 
