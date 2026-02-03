@@ -4,7 +4,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Granite / Toss imports
 import { useNavigation } from '@granite-js/react-native';
 import { Asset, FixedBottomCTA, FixedBottomCTAProvider } from '@toss/tds-react-native';
-import { useAdaptive } from '@toss/tds-react-native/private';
 
 // Local Components & Hooks
 import { MoveToCurrentLocationButton } from './components/MoveToCurrentLocationButton';
@@ -21,7 +20,6 @@ const INITIAL_CAMERA: CameraState = {
 };
 
 export default function LocationScreen() {
-    // Mock params support since useLocalSearchParams is Expo; using defaults or assuming nav params if available
     const params = {
         latitude: undefined,
         longitude: undefined,
@@ -30,7 +28,6 @@ export default function LocationScreen() {
     };
 
     const navigation = useNavigation();
-    const adaptive = useAdaptive();
     const insets = useSafeAreaInsets();
 
     const naverMapRef = useRef<any>(null); // Type 'any' for mock
@@ -54,7 +51,6 @@ export default function LocationScreen() {
     }>(initialCoords);
 
     const [hasSelection, setHasSelection] = useState(true);
-    const [isAtCurrentLocation, setIsAtCurrentLocation] = useState(false);
 
     const { handleMoveToCurrentLocation } = useMoveToCurrentLocation({
         naverMapRef,
@@ -71,7 +67,6 @@ export default function LocationScreen() {
                 longitude,
                 address: '',
             });
-            setIsAtCurrentLocation(true);
         },
     });
 
@@ -83,7 +78,6 @@ export default function LocationScreen() {
         (latitude: number, longitude: number) => {
             setSelectedCoords({ latitude, longitude });
             setHasSelection(true);
-            setIsAtCurrentLocation(false);
             setCamera((prev) => ({
                 ...prev,
                 latitude,
@@ -156,13 +150,12 @@ export default function LocationScreen() {
                     />
 
                     <View pointerEvents="box-none" style={styles.floatingButtonContainer}>
-                        <MoveToCurrentLocationButton isAtCurrentLocation={isAtCurrentLocation} onPress={handleMoveToCurrent} />
+                        <MoveToCurrentLocationButton onPress={handleMoveToCurrent} />
                     </View>
                 </View>
 
                 <View style={styles.infoContainer}>
                     <View style={styles.titleContainer}>
-                        {/* Replaced t('...') with hardcoded or variable strings as i18n not imported */}
                         <Text style={styles.titleText}>흡연구역의 위치를 확인해주세요</Text>
                         <Text style={styles.subtitleText}>지도를 터치하여 흡연구역의 위치를 표시해주세요</Text>
                     </View>
@@ -173,9 +166,7 @@ export default function LocationScreen() {
                             <Text style={styles.addressText}>{formData.address || '주소를 가져오는 중...'}</Text>
                         </View>
 
-                        {/* Warning Box */}
                         <View style={styles.warningBox}>
-                            {/* Asset Icon for warning if available, else text */}
                             <Asset.Icon name="icon-info-circle-mono" color="#FFD057" />
                             <Text style={styles.warningText}>지도의 표시와 실제 위치가 맞는지 확인해주세요</Text>
                         </View>

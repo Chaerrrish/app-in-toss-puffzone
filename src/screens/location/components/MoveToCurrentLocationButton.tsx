@@ -2,12 +2,10 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Asset } from '@toss/tds-react-native';
 
 type MoveToCurrentLocationButtonProps = Readonly<{
-    isAtCurrentLocation?: boolean;
     onPress: () => void;
 }>;
 
 export function MoveToCurrentLocationButton({
-    isAtCurrentLocation = false,
     onPress,
 }: MoveToCurrentLocationButtonProps) {
     return (

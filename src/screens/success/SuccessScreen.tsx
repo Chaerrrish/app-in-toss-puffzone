@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import { Lottie, Spacing } from "@granite-js/react-native";
+import { Spacing } from "@granite-js/react-native";
 import { Asset, Badge, BottomSheet, Button, FixedBottomCTA, FixedBottomCTAProvider, Toast, Txt } from "@toss/tds-react-native";
 import { useAdaptive } from "@toss/tds-react-native/private";
 import { useState } from "react";
