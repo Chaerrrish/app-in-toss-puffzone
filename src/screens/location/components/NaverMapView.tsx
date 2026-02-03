@@ -9,7 +9,6 @@ export interface CameraState {
 }
 
 interface NaverMapSelectorProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mapRef: any;
   camera: CameraState;
   onCameraChange: (camera: CameraState) => void;
@@ -353,7 +352,6 @@ export function NaverMapSelector({
         }));
       }
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setLocationTrackingMode: (mode: any) => {
       console.log('Tracking mode not fully implemented in WebView adapter yet:', mode);
     },
@@ -378,7 +376,6 @@ export function NaverMapSelector({
         zoom: camera.zoom
       }));
 
-      // Map initialized, now set the initial marker immediately
       if (selectedLocation) {
         webviewRef.current.postMessage(JSON.stringify({
           type: 'SET_MARKER',
@@ -387,7 +384,7 @@ export function NaverMapSelector({
         }));
       }
     }
-  }, [isMapReady, camera]);
+  }, [isMapReady]);
 
   const handleMessage = (event: WebViewMessageEvent) => {
     try {
