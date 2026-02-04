@@ -1,13 +1,13 @@
 import { theme } from "@/shared/styles/theme";
 import { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, Alert, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { Spacing, useNavigation, createRoute } from "@granite-js/react-native";
 import { z as zod } from "zod";
 import ReportLocationSection from "./widgets/ReportLocationSection";
 import { ReportFormData } from "./types";
 import ReportFormSection, { ReportInfoModalType } from "./widgets/ReportFormSection";
 import { reportZone } from "@/shared/api/report_zone";
-import { BottomInfo, FixedBottomCTA, FixedBottomCTAProvider, Post } from "@toss/tds-react-native";
+import { BottomInfo, FixedBottomCTA, FixedBottomCTAProvider, Post, AlertDialog } from "@toss/tds-react-native";
 import ReportCategorySection from "./widgets/ReportCategorySection";
 import ReportFeatureSection from "./widgets/ReportFeatureSection";
 import ReportImageSection from "./widgets/ReportImageSection";
@@ -38,6 +38,21 @@ export default function ReportScreen() {
     const [infoModal, setInfoModal] = useState<ReportInfoModalType>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Alert State
+    const [alertConfig, setAlertConfig] = useState<{
+        open: boolean;
+        title: string;
+        description: string;
+    }>({
+        open: false,
+        title: '',
+        description: '',
+    });
+
+    const showAlert = (title: string, description: string) => {
+        setAlertConfig({ open: true, title, description });
+    };
+
     useEffect(() => {
         if (params.newPhotos && Array.isArray(params.newPhotos)) {
             // Append new photos
@@ -52,7 +67,7 @@ export default function ReportScreen() {
                 const unique = Array.from(new Set(combined));
 
                 if (unique.length > 10) {
-                    Alert.alert('알림', '사진은 최대 10장까지만 업로드할 수 있습니다.');
+                    showAlert('알림', '사진은 최대 10장까지만 업로드할 수 있습니다.');
                     return { ...prev, photos: unique.slice(0, 10) };
                 }
 
@@ -67,12 +82,12 @@ export default function ReportScreen() {
 
     const handleSubmit = async () => {
         if (formData.photos.length === 0) {
-            Alert.alert('알림', '최소 1장의 사진을 등록해주세요.');
+            showAlert('알림', '최소 1장의 사진을 등록해주세요.');
             return;
         }
 
         if (!formData.name) {
-            Alert.alert('알림', '장소명을 입력해주세요.');
+            showAlert('알림', '장소명을 입력해주세요.');
             return;
         }
 
@@ -99,11 +114,11 @@ export default function ReportScreen() {
             if (result.success) {
                 navigation.navigate('/success');
             } else {
-                Alert.alert('제보 실패', result.error || '알 수 없는 오류가 발생했습니다.');
+                showAlert('제보 실패', result.error || '알 수 없는 오류가 발생했습니다.');
             }
         } catch (e: unknown) {
             const errorMessage = e instanceof Error ? e.message : '알 수 없는 오류가 발생했습니다.';
-            Alert.alert('오류', errorMessage);
+            showAlert('오류', errorMessage);
         } finally {
             setIsSubmitting(false);
         }
@@ -174,6 +189,16 @@ export default function ReportScreen() {
                     제보하기
                 </FixedBottomCTA>
             </FixedBottomCTAProvider>
+
+            <AlertDialog
+                open={alertConfig.open}
+                title={alertConfig.title}
+                description={alertConfig.description}
+                buttonText="확인"
+                onButtonPress={() => setAlertConfig(prev => ({ ...prev, open: false }))}
+                onClose={() => setAlertConfig(prev => ({ ...prev, open: false }))}
+                onExited={() => { }}
+            />
 
         </>
     );
