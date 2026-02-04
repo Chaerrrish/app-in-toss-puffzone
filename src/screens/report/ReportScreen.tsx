@@ -50,6 +50,12 @@ export default function ReportScreen() {
                 const combined = [...prev.photos, ...newUris];
                 // Unique
                 const unique = Array.from(new Set(combined));
+
+                if (unique.length > 10) {
+                    Alert.alert('알림', '사진은 최대 10장까지만 업로드할 수 있습니다.');
+                    return { ...prev, photos: unique.slice(0, 10) };
+                }
+
                 return { ...prev, photos: unique };
             });
         }
@@ -160,7 +166,11 @@ export default function ReportScreen() {
                         </Post.Li>
                     </Post.Ul>
                 </BottomInfo>
-                <FixedBottomCTA loading={isSubmitting} onPress={handleSubmit}>
+                <FixedBottomCTA
+                    loading={isSubmitting}
+                    onPress={handleSubmit}
+                    disabled={!formData.name || !formData.description || formData.photos.length === 0}
+                >
                     제보하기
                 </FixedBottomCTA>
             </FixedBottomCTAProvider>

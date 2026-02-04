@@ -28,7 +28,7 @@ export default function ReportFormSection({
     };
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, !!infoModal && { zIndex: 100 }]}>
             {/* Name Field */}
             <View style={[styles.fieldContainer, infoModal === 'name' && { zIndex: 10 }]}>
                 <View style={styles.labelRow}>
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     },
     modalDescription: {
         ...theme.text.b.r,
-        color: theme.colors.text.secondary, // gray-20/gray-30?
+        color: theme.colors.text.secondary,
     },
     modalFooter: {
         ...theme.text.m.m,
