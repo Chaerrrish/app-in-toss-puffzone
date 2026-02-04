@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { theme } from '@/shared/styles/theme';
 import { Asset, FixedBottomCTA, FixedBottomCTAProvider } from '@toss/tds-react-native';
 import PhotoOptionBottomSheet from './components/PhotoOptionBottomSheet';
@@ -46,6 +46,7 @@ export default function UploadGuideScreen() {
     const params = UploadGuideRoute.useParams();
 
     const [isPhotoSheetOpen, setIsPhotoSheetOpen] = React.useState(false);
+    const [isLoading, setIsLoading] = React.useState(false);
 
     const handleSelectPhoto = async (type: 'camera' | 'library') => {
         const { latitude, longitude, address } = params;
@@ -55,76 +56,83 @@ export default function UploadGuideScreen() {
             return;
         }
 
-        if (type === 'library') {
-            try {
-                console.log('Starting library flow');
-                if (typeof fetchAlbumPhotos.getPermission === 'function') {
-                    const permission = await fetchAlbumPhotos.getPermission();
-                    console.log('Library Permission:', permission);
+        setIsPhotoSheetOpen(false);
+        setIsLoading(true);
 
-                    if (permission === 'denied' || permission === 'notDetermined') {
-                        const result = await fetchAlbumPhotos.openPermissionDialog();
-                        if (result === 'denied') return;
+        try {
+            if (type === 'library') {
+                try {
+                    console.log('Starting library flow');
+                    if (typeof fetchAlbumPhotos.getPermission === 'function') {
+                        const permission = await fetchAlbumPhotos.getPermission();
+                        console.log('Library Permission:', permission);
+
+                        if (permission === 'denied' || permission === 'notDetermined') {
+                            const result = await fetchAlbumPhotos.openPermissionDialog();
+                            if (result === 'denied') return;
+                        }
+                    }
+
+                    const response = await fetchAlbumPhotos({
+                        maxCount: 10,
+                        maxWidth: 1024,
+                        base64: false,
+                    });
+
+                    if (response && response.length > 0) {
+                        const newPhotos = response.map((img: AlbumPhoto) => img.dataUri);
+                        const reportParams: ReportScreenParams = {
+                            newPhotos,
+                            latitude,
+                            longitude,
+                            address,
+                        };
+                        navigation.navigate('/report', reportParams);
+                    }
+                } catch (error) {
+                    console.error('Library Error:', error);
+                    if (error instanceof FetchAlbumPhotosPermissionError) {
+                        console.log('Library permission error caught');
+                        await fetchAlbumPhotos.openPermissionDialog();
                     }
                 }
+            } else {
+                try {
+                    console.log('Starting camera flow');
+                    if (typeof openCamera.getPermission === 'function') {
+                        const permission = await openCamera.getPermission();
+                        console.log('Camera Permission:', permission);
 
-                const response = await fetchAlbumPhotos({
-                    maxCount: 10,
-                    maxWidth: 1024,
-                    base64: false,
-                });
+                        if (permission === 'denied' || permission === 'notDetermined') {
+                            const result = await openCamera.openPermissionDialog();
+                            if (result === 'denied') return;
+                        }
+                    }
+                    const response = await openCamera({
+                        base64: false,
+                        maxWidth: 1024,
+                    });
 
-                if (response && response.length > 0) {
-                    const newPhotos = response.map((img: AlbumPhoto) => img.dataUri);
-                    const reportParams: ReportScreenParams = {
-                        newPhotos,
-                        latitude,
-                        longitude,
-                        address,
-                    };
-                    navigation.navigate('/report', reportParams);
-                }
-            } catch (error) {
-                console.error('Library Error:', error);
-                if (error instanceof FetchAlbumPhotosPermissionError) {
-                    console.log('Library permission error caught');
-                    await fetchAlbumPhotos.openPermissionDialog();
-                }
-            }
-        } else {
-            try {
-                console.log('Starting camera flow');
-                if (typeof openCamera.getPermission === 'function') {
-                    const permission = await openCamera.getPermission();
-                    console.log('Camera Permission:', permission);
-
-                    if (permission === 'denied' || permission === 'notDetermined') {
-                        const result = await openCamera.openPermissionDialog();
-                        if (result === 'denied') return;
+                    if (response) {
+                        console.log('Camera success');
+                        const reportParams: ReportScreenParams = {
+                            newPhotos: [response.dataUri],
+                            latitude,
+                            longitude,
+                            address,
+                        };
+                        navigation.navigate('/report', reportParams);
+                    }
+                } catch (error) {
+                    console.error('Camera Error:', error);
+                    if (error instanceof OpenCameraPermissionError) {
+                        console.log('Camera permission error caught');
+                        await openCamera.openPermissionDialog();
                     }
                 }
-                const response = await openCamera({
-                    base64: false,
-                    maxWidth: 1024,
-                });
-
-                if (response) {
-                    console.log('Camera success');
-                    const reportParams: ReportScreenParams = {
-                        newPhotos: [response.dataUri],
-                        latitude,
-                        longitude,
-                        address,
-                    };
-                    navigation.navigate('/report', reportParams);
-                }
-            } catch (error) {
-                console.error('Camera Error:', error);
-                if (error instanceof OpenCameraPermissionError) {
-                    console.log('Camera permission error caught');
-                    await openCamera.openPermissionDialog();
-                }
             }
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -208,6 +216,12 @@ export default function UploadGuideScreen() {
                 onClose={() => setIsPhotoSheetOpen(false)}
                 onSelect={handleSelectPhoto}
             />
+
+            {isLoading && (
+                <View style={[StyleSheet.absoluteFill, styles.loadingOverlay]}>
+                    <ActivityIndicator size="large" color={theme.colors.primary[50]} />
+                </View>
+            )}
         </>
     );
 }
@@ -323,5 +337,11 @@ const styles = StyleSheet.create({
     buttonText: {
         ...theme.text.l.sb,
         color: theme.colors.white,
+    },
+    loadingOverlay: {
+        backgroundColor: 'rgba(255, 255, 255, 0.6)',
+        zIndex: 9999,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });
