@@ -16,7 +16,7 @@ export class AuthError extends Error {
  * - Inject Authorization header
  * - Handle 401/403 (Logout)
  */
-export const apiFetch = async <T = any>(
+export const apiFetch = async <T>(
     path: string,
     init?: RequestInit
 ): Promise<T> => {
@@ -30,33 +30,29 @@ export const apiFetch = async <T = any>(
         headers.set('Authorization', `Bearer ${token}`);
     }
 
-    try {
-        const response = await fetch(url, {
-            ...init,
-            headers,
-        });
+    const response = await fetch(url, {
+        ...init,
+        headers,
+    });
 
-        if (response.status === 401 || response.status === 403) {
-            await clearSessionToken();
-            // Trigger global session expired event
-            authEvents.emit('sessionExpired');
-            throw new AuthError('Session expired');
-        }
-
-        if (!response.ok) {
-            // Try to parse error message
-            const errorText = await response.text();
-            throw new Error(`API Error ${response.status}: ${errorText}`);
-        }
-
-        // Handle empty responses (e.g. 204)
-        if (response.status === 204) {
-            return {} as T;
-        }
-
-        const data = await response.json();
-        return data as T;
-    } catch (error) {
-        throw error;
+    if (response.status === 401 || response.status === 403) {
+        await clearSessionToken();
+        // Trigger global session expired event
+        authEvents.emit('sessionExpired');
+        throw new AuthError('Session expired');
     }
+
+    if (!response.ok) {
+        // Try to parse error message
+        const errorText = await response.text();
+        throw new Error(`API Error ${response.status}: ${errorText}`);
+    }
+
+    // Handle empty responses (e.g. 204)
+    if (response.status === 204) {
+        return {} as T;
+    }
+
+    const data = await response.json();
+    return data as T;
 };

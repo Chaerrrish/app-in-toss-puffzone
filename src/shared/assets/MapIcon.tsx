@@ -1,8 +1,6 @@
+import Svg, { Path, SvgProps } from 'react-native-svg';
 
-import React from 'react';
-import Svg, { Path } from 'react-native-svg';
-
-export default function MapIcon({ width = 62, height = 62, ...props }: { width?: number; height?: number;[key: string]: any }) {
+export default function MapIcon({ width = 62, height = 62, ...props }: { width?: number; height?: number } & SvgProps) {
     return (
         <Svg width={width} height={height} viewBox="0 0 62 62" fill="none" {...props}>
             <Path d="M54.25 46.2838V11.027C54.25 10.6858 53.9157 10.4448 53.5919 10.5527L38.75 15.5V51.6667L54.0449 46.5684C54.1674 46.5275 54.25 46.4129 54.25 46.2838Z" fill="#EAEBEA" />

@@ -1,7 +1,7 @@
 import { Spacing } from '@granite-js/react-native';
 import { BottomSheet, Button, Top, Asset } from '@toss/tds-react-native';
 import { useOverlay, useAdaptive } from '@toss/tds-react-native/private';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 
 
 

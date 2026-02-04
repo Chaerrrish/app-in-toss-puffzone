@@ -5,8 +5,8 @@
     "dev": "granite dev",
     "build": "granite build",
     "test": "jest --passWithNoTests",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint ."
+    "tsc": "tsc --noEmit",
+    "lint:fix": "eslint --fix ."
   },
   "dependencies": {
     "@apps-in-toss/framework": "^1.8.0",

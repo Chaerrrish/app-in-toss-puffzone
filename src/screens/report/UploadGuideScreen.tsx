@@ -4,9 +4,16 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { theme } from '@/shared/styles/theme';
 import { Asset, FixedBottomCTA, FixedBottomCTAProvider } from '@toss/tds-react-native';
 import PhotoOptionBottomSheet from './components/PhotoOptionBottomSheet';
+import { ReportScreenParams } from './ReportScreen';
 import { fetchAlbumPhotos, openCamera } from '@apps-in-toss/native-modules';
 import { FetchAlbumPhotosPermissionError, OpenCameraPermissionError } from '@apps-in-toss/types';
-import { useNavigation } from '@granite-js/react-native';
+import { useNavigation, createRoute } from '@granite-js/react-native';
+import { z as zod } from "zod";
+
+interface AlbumPhoto {
+    dataUri: string;
+    // Add other properties if needed
+}
 
 const GUIDE_IMAGES = [
     {
@@ -32,7 +39,7 @@ const GUIDE_IMAGES = [
 ];
 
 
-import { UploadGuideRoute } from './route';
+
 
 export default function UploadGuideScreen() {
     const navigation = useNavigation();
@@ -41,6 +48,13 @@ export default function UploadGuideScreen() {
     const [isPhotoSheetOpen, setIsPhotoSheetOpen] = React.useState(false);
 
     const handleSelectPhoto = async (type: 'camera' | 'library') => {
+        const { latitude, longitude, address } = params;
+
+        if (latitude === undefined || longitude === undefined || !address) {
+            console.error('Missing location data');
+            return;
+        }
+
         if (type === 'library') {
             try {
                 console.log('Starting library flow');
@@ -61,12 +75,14 @@ export default function UploadGuideScreen() {
                 });
 
                 if (response && response.length > 0) {
-                    const newPhotos = response.map((img: any) => img.dataUri);
-                    // Use callback if available, otherwise fallback (though fallback might not work as intended if we want to preserve state)
-                    if (params?.onPhotosSelected) {
-                        params.onPhotosSelected(newPhotos);
-                    }
-                    navigation.goBack();
+                    const newPhotos = response.map((img: AlbumPhoto) => img.dataUri);
+                    const reportParams: ReportScreenParams = {
+                        newPhotos,
+                        latitude,
+                        longitude,
+                        address,
+                    };
+                    navigation.navigate('/report', reportParams);
                 }
             } catch (error) {
                 console.error('Library Error:', error);
@@ -94,10 +110,13 @@ export default function UploadGuideScreen() {
 
                 if (response) {
                     console.log('Camera success');
-                    if (params?.onPhotosSelected) {
-                        params.onPhotosSelected([response.dataUri]);
-                    }
-                    navigation.goBack();
+                    const reportParams: ReportScreenParams = {
+                        newPhotos: [response.dataUri],
+                        latitude,
+                        longitude,
+                        address,
+                    };
+                    navigation.navigate('/report', reportParams);
                 }
             } catch (error) {
                 console.error('Camera Error:', error);
@@ -192,6 +211,15 @@ export default function UploadGuideScreen() {
         </>
     );
 }
+
+export const UploadGuideRoute = createRoute('/upload-guide', {
+    component: UploadGuideScreen,
+    validateParams: zod.object({
+        latitude: zod.number().optional(),
+        longitude: zod.number().optional(),
+        address: zod.string().optional(),
+    }),
+});
 
 const styles = StyleSheet.create({
     container: {

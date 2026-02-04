@@ -1,5 +1,4 @@
-import React from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
+import { View, Text, StyleSheet, Pressable } from "react-native";
 import StaticNaverMapView from "@/screens/report/components/StaticNaverMapView";
 import { theme } from "@/shared/styles/theme";
 import { useNavigation } from '@granite-js/react-native';

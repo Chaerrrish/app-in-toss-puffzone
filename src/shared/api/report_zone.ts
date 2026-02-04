@@ -1,5 +1,32 @@
 import { apiFetch } from './client';
 
+interface UploadInfo {
+    signedUrl: string;
+    path: string;
+    fileName: string;
+}
+
+interface InitResponse {
+    success: boolean;
+    data: {
+        zoneId: string;
+    } & UploadInfo;
+    error?: string;
+}
+
+interface PresignedUrlResponse {
+    success: boolean;
+    data?: UploadInfo & { zoneId: string };
+    error?: string;
+}
+
+
+
+interface CommonResponse {
+    success: boolean;
+    error?: string;
+}
+
 // Client-side Zone Report API
 
 interface ZoneInput {
@@ -40,7 +67,7 @@ export const reportZone = async (
         const firstExt = firstImage.name.split('.').pop() || 'jpg';
 
         // Step 1: Init - Create Zone & Get URL for 1st image
-        const initData = await apiFetch<any>('/api/zone/report/init', {
+        const initData = await apiFetch<InitResponse>('/api/zone/report/init', {
             method: 'POST',
             body: JSON.stringify({
                 zoneData,
@@ -70,7 +97,7 @@ export const reportZone = async (
                 const ext = img.name.split('.').pop() || 'jpg';
 
                 // 1. Get Upload URL
-                const urlData = await apiFetch<any>('/api/zone/report/presigned-url', {
+                const urlData = await apiFetch<PresignedUrlResponse>('/api/zone/report/presigned-url', {
                     method: 'POST',
                     body: JSON.stringify({
                         zoneId,
@@ -78,10 +105,12 @@ export const reportZone = async (
                     }),
                 });
 
-                if (!urlData.success) throw new Error(urlData.error);
+                if (!urlData.success || !urlData.data) {
+                    throw new Error(urlData.error || 'Failed to create upload URL');
+                }
 
                 // 2. Upload & Register
-                await uploadAndRegisterImage(zoneId!, img, urlData);
+                await uploadAndRegisterImage(zoneId!, img, urlData.data);
 
                 counter++;
             }
@@ -90,17 +119,18 @@ export const reportZone = async (
         console.log('[ZoneReport] All images processed. Success!');
         return { success: true, zoneId };
 
-    } catch (error: any) {
-        console.error('[ZoneReport] Error:', error);
+    } catch (e) {
+        console.error('[ZoneReport] Error:', e);
         // ... Clean up ...
-        return { success: false, error: error.message };
+        const msg = e instanceof Error ? e.message : String(e);
+        return { success: false, error: msg };
     }
 };
 
 async function uploadAndRegisterImage(
     zoneId: string,
     imageFile: ImageFile,
-    uploadInfo: { signedUrl: string, path: string, fileName: string }
+    uploadInfo: Pick<UploadInfo, 'signedUrl' | 'fileName'>
 ) {
     // 1. Upload PUT (Direct S3 upload - do not use apiFetch)
     const imageRes = await fetch(imageFile.uri);
@@ -119,14 +149,12 @@ async function uploadAndRegisterImage(
     }
 
     // 2. Register Meta (Server call - use apiFetch)
-    const completeData = await apiFetch<any>('/api/zone/report/upload-image', {
+    const completeData = await apiFetch<CommonResponse>('/api/zone/report/upload-image', {
         method: 'POST',
         body: JSON.stringify({
             zoneId,
-            path: uploadInfo.path,
             fileName: uploadInfo.fileName,
             fileType: imageFile.type,
-            userId: undefined
         }),
     });
 

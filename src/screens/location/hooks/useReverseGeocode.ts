@@ -1,6 +1,20 @@
 import { useCallback } from 'react';
 
 
+interface NaverGeocodeResult {
+    name: string;
+    region: {
+        area1: { name: string };
+        area2: { name: string };
+        area3: { name: string };
+    };
+    land?: {
+        name: string;
+        number1: string;
+        number2: string;
+    };
+}
+
 export function useReverseGeocode() {
     const getAddressFromCoords = useCallback(async (latitude: number, longitude: number) => {
         try {
@@ -32,7 +46,7 @@ export function useReverseGeocode() {
 
             if (data.results && data.results.length > 0) {
                 // 도로명 주소 우선 (Road Name Address Priority)
-                const roadAddrResult = data.results.find((result: any) => result.name === 'roadaddr');
+                const roadAddrResult = data.results.find((result: NaverGeocodeResult) => result.name === 'roadaddr');
                 if (roadAddrResult?.land?.name && roadAddrResult.region) {
                     const region = roadAddrResult.region;
                     const land = roadAddrResult.land;
@@ -40,7 +54,7 @@ export function useReverseGeocode() {
                 }
 
                 // 지번 주소 (Jibun Address Priority)
-                const addrResult = data.results.find((result: any) => result.name === 'addr');
+                const addrResult = data.results.find((result: NaverGeocodeResult) => result.name === 'addr');
                 if (addrResult?.land && addrResult.region) {
                     const region = addrResult.region;
                     const land = addrResult.land;

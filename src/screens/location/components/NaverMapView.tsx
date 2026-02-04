@@ -1,4 +1,4 @@
-import React, { useImperativeHandle, useRef, useEffect, useState, useMemo } from 'react';
+import { useImperativeHandle, useRef, useEffect, useState, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 
@@ -8,9 +8,13 @@ export interface CameraState {
   zoom: number;
 }
 
+export interface NaverMapHandle {
+  animateCameraTo: (params: { latitude: number; longitude: number; zoom?: number }) => void;
+  setLocationTrackingMode: (mode: string) => void;
+}
+
 interface NaverMapSelectorProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mapRef: any;
+  mapRef: React.MutableRefObject<NaverMapHandle | null>;
   camera: CameraState;
   onCameraChange: (camera: CameraState) => void;
   onMapTap: (latitude: number, longitude: number) => void;
@@ -353,8 +357,7 @@ export function NaverMapSelector({
         }));
       }
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setLocationTrackingMode: (mode: any) => {
+    setLocationTrackingMode: (mode: string) => {
       console.log('Tracking mode not fully implemented in WebView adapter yet:', mode);
     },
   }));
@@ -378,7 +381,6 @@ export function NaverMapSelector({
         zoom: camera.zoom
       }));
 
-      // Map initialized, now set the initial marker immediately
       if (selectedLocation) {
         webviewRef.current.postMessage(JSON.stringify({
           type: 'SET_MARKER',
@@ -387,7 +389,7 @@ export function NaverMapSelector({
         }));
       }
     }
-  }, [isMapReady, camera]);
+  }, [isMapReady]);
 
   const handleMessage = (event: WebViewMessageEvent) => {
     try {

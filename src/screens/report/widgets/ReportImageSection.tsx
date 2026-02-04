@@ -1,12 +1,7 @@
-
-import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, Pressable, Image, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Pressable, Image } from 'react-native';
 import { theme } from '@/shared/styles/theme';
 import { ReportFormData } from '../types';
 import { Asset } from '@toss/tds-react-native';
-import PhotoOptionBottomSheet from '../components/PhotoOptionBottomSheet';
-// @ts-ignore
-import { showImagePicker } from '@apps-in-toss/framework';
 import { useNavigation } from '@granite-js/react-native';
 
 const MAX_PHOTOS = 10;
@@ -14,9 +9,14 @@ const MAX_PHOTOS = 10;
 interface ReportImageSectionProps {
     formData: ReportFormData;
     updateForm: (data: Partial<ReportFormData>) => void;
+    latitude: number;
+    longitude: number;
+    address: string;
 }
 
-export default function ReportImageSection({ formData, updateForm }: ReportImageSectionProps) {
+
+
+export default function ReportImageSection({ formData, updateForm, latitude, longitude, address }: ReportImageSectionProps) {
     const navigation = useNavigation();
 
     const handleRemovePhoto = (index: number) => {
@@ -25,25 +25,6 @@ export default function ReportImageSection({ formData, updateForm }: ReportImage
         updateForm({ photos: newPhotos });
     };
 
-
-    const handleSelectPhoto = async (type: 'camera' | 'library') => {
-        try {
-            // TODO: Handle 'camera' type specifically if API differs
-            const result = await showImagePicker({
-                count: MAX_PHOTOS - formData.photos.length,
-                type: 'limit', // or based on 'type' arg?
-            });
-
-            if (result && result.length > 0) {
-                const newUris = result.map((p: any) => p.uri || p).filter(Boolean);
-                const combined = [...formData.photos, ...newUris];
-                const unique = Array.from(new Set(combined));
-                updateForm({ photos: unique });
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    };
 
     return (
         <View style={styles.container}>
@@ -58,12 +39,10 @@ export default function ReportImageSection({ formData, updateForm }: ReportImage
                     maxCount={MAX_PHOTOS}
                     onPress={() => {
                         navigation.navigate('/upload-guide', {
-                            onPhotosSelected: (newPhotos: string[]) => {
-                                const combined = [...formData.photos, ...newPhotos];
-                                const unique = Array.from(new Set(combined));
-                                updateForm({ photos: unique });
-                            }
-                        } as any)
+                            latitude,
+                            longitude,
+                            address
+                        })
                     }}
                 />
                 {formData.photos.map((uri, index) => (
