@@ -4,6 +4,7 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { theme } from '@/shared/styles/theme';
 import { Asset, FixedBottomCTA, FixedBottomCTAProvider } from '@toss/tds-react-native';
 import PhotoOptionBottomSheet from './components/PhotoOptionBottomSheet';
+import { ReportScreenParams } from './ReportScreen';
 import { fetchAlbumPhotos, openCamera } from '@apps-in-toss/native-modules';
 import { FetchAlbumPhotosPermissionError, OpenCameraPermissionError } from '@apps-in-toss/types';
 import { useNavigation, createRoute } from '@granite-js/react-native';
@@ -47,6 +48,13 @@ export default function UploadGuideScreen() {
     const [isPhotoSheetOpen, setIsPhotoSheetOpen] = React.useState(false);
 
     const handleSelectPhoto = async (type: 'camera' | 'library') => {
+        const { latitude, longitude, address } = params;
+
+        if (latitude === undefined || longitude === undefined || !address) {
+            console.error('Missing location data');
+            return;
+        }
+
         if (type === 'library') {
             try {
                 console.log('Starting library flow');
@@ -68,12 +76,13 @@ export default function UploadGuideScreen() {
 
                 if (response && response.length > 0) {
                     const newPhotos = response.map((img: AlbumPhoto) => img.dataUri);
-                    navigation.navigate('/report', {
+                    const reportParams: ReportScreenParams = {
                         newPhotos,
-                        latitude: params.latitude,
-                        longitude: params.longitude,
-                        address: params.address,
-                    } as any);
+                        latitude,
+                        longitude,
+                        address,
+                    };
+                    navigation.navigate('/report', reportParams);
                 }
             } catch (error) {
                 console.error('Library Error:', error);
@@ -101,12 +110,13 @@ export default function UploadGuideScreen() {
 
                 if (response) {
                     console.log('Camera success');
-                    navigation.navigate('/report', {
+                    const reportParams: ReportScreenParams = {
                         newPhotos: [response.dataUri],
-                        latitude: params.latitude,
-                        longitude: params.longitude,
-                        address: params.address,
-                    } as any);
+                        latitude,
+                        longitude,
+                        address,
+                    };
+                    navigation.navigate('/report', reportParams);
                 }
             } catch (error) {
                 console.error('Camera Error:', error);

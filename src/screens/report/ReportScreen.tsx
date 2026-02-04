@@ -16,7 +16,7 @@ import ReportImageSection from "./widgets/ReportImageSection";
 
 
 
-interface ReportScreenParams {
+export interface ReportScreenParams {
     latitude: number;
     longitude: number;
     address: string;
