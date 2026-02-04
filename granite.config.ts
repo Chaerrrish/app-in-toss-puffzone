@@ -26,7 +26,7 @@ export default defineConfig({
     env({
       NAVER_MAP_APPLICATION: 'puffzone',
       NAVER_MAP_CLIENT_ID: '51wm2hbym8',
-      BASE_URL: 'https://hockey-promises-lib-hash.trycloudflare.com',
+      BASE_URL: 'https://knowing-oldest-shark-bidder.trycloudflare.com',
     })
   ],
 

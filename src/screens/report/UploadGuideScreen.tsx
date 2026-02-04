@@ -6,7 +6,8 @@ import { Asset, FixedBottomCTA, FixedBottomCTAProvider } from '@toss/tds-react-n
 import PhotoOptionBottomSheet from './components/PhotoOptionBottomSheet';
 import { fetchAlbumPhotos, openCamera } from '@apps-in-toss/native-modules';
 import { FetchAlbumPhotosPermissionError, OpenCameraPermissionError } from '@apps-in-toss/types';
-import { useNavigation } from '@granite-js/react-native';
+import { useNavigation, createRoute } from '@granite-js/react-native';
+import { z as zod } from "zod";
 
 interface AlbumPhoto {
     dataUri: string;
@@ -37,7 +38,7 @@ const GUIDE_IMAGES = [
 ];
 
 
-import { UploadGuideRoute } from './route';
+
 
 export default function UploadGuideScreen() {
     const navigation = useNavigation();
@@ -200,6 +201,15 @@ export default function UploadGuideScreen() {
         </>
     );
 }
+
+export const UploadGuideRoute = createRoute('/upload-guide', {
+    component: UploadGuideScreen,
+    validateParams: zod.object({
+        latitude: zod.number().optional(),
+        longitude: zod.number().optional(),
+        address: zod.string().optional(),
+    }),
+});
 
 const styles = StyleSheet.create({
     container: {

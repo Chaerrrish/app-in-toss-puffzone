@@ -1,7 +1,8 @@
 import { theme } from "@/shared/styles/theme";
 import { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, Alert, View } from "react-native";
-import { Spacing, useNavigation } from "@granite-js/react-native";
+import { Spacing, useNavigation, createRoute } from "@granite-js/react-native";
+import { z as zod } from "zod";
 import ReportLocationSection from "./widgets/ReportLocationSection";
 import { ReportFormData } from "./types";
 import ReportFormSection, { ReportInfoModalType } from "./widgets/ReportFormSection";
@@ -11,7 +12,7 @@ import ReportCategorySection from "./widgets/ReportCategorySection";
 import ReportFeatureSection from "./widgets/ReportFeatureSection";
 import ReportImageSection from "./widgets/ReportImageSection";
 
-import { Route } from './route';
+
 
 
 
@@ -167,6 +168,16 @@ export default function ReportScreen() {
         </>
     );
 }
+
+export const Route = createRoute('/report', {
+    component: ReportScreen,
+    validateParams: zod.object({
+        latitude: zod.number(),
+        longitude: zod.number(),
+        address: zod.string(),
+        newPhotos: zod.array(zod.union([zod.string(), zod.object({ uri: zod.string() })])).optional(),
+    }),
+});
 
 const styles = StyleSheet.create({
     container: {
