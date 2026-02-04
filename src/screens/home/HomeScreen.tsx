@@ -3,6 +3,7 @@ import {
   FixedBottomCTA,
   FixedBottomCTAProvider,
   StepperRow,
+  Toast,
 } from '@toss/tds-react-native';
 import { Spacing, useNavigation } from '@granite-js/react-native';
 import { useAdaptive } from '@toss/tds-react-native/private';
@@ -19,6 +20,7 @@ export default function HomeScreen() {
   const navigation = useNavigation();
 
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isLoginFailed, setIsLoginFailed] = useState(false);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -40,6 +42,7 @@ export default function HomeScreen() {
   const handleLogin = async () => {
     if (isLoggingIn) return;
     setIsLoggingIn(true);
+    setIsLoginFailed(false);
 
     try {
       const { authorizationCode } = await appLogin();
@@ -52,9 +55,11 @@ export default function HomeScreen() {
         navigation.navigate('/location');
       } else {
         console.error('Login failed or no session token');
+        setIsLoginFailed(true);
       }
     } catch (error) {
       console.error('Failed to login:', error);
+      setIsLoginFailed(true);
     } finally {
       setIsLoggingIn(false);
     }
@@ -104,9 +109,16 @@ export default function HomeScreen() {
         />
 
 
-        <FixedBottomCTA loading={false} onPress={handleLogin}>시작하기</FixedBottomCTA>
+        <FixedBottomCTA loading={isLoggingIn} onPress={handleLogin}>시작하기</FixedBottomCTA>
         {/* <FixedBottomCTA loading={false} onPress={() => navigation.navigate('/success')}>시작하기</FixedBottomCTA> */}
       </FixedBottomCTAProvider>
+      <Toast
+        open={isLoginFailed}
+        text="로그인에 실패했어요. 다시 시도해주세요."
+        position="top"
+        icon={<Toast.Icon name="icon-warning-circle" />}
+        onClose={() => setIsLoginFailed(false)}
+      />
     </>
   );
 }

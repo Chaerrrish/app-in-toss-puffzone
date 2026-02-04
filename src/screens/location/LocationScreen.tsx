@@ -3,7 +3,7 @@ import { Text, View, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Granite / Toss imports
 import { useNavigation } from '@granite-js/react-native';
-import { Asset, FixedBottomCTA, FixedBottomCTAProvider } from '@toss/tds-react-native';
+import { Asset, FixedBottomCTA, FixedBottomCTAProvider, AlertDialog } from '@toss/tds-react-native';
 
 // Local Components & Hooks
 import { MoveToCurrentLocationButton } from './components/MoveToCurrentLocationButton';
@@ -52,6 +52,21 @@ export default function LocationScreen() {
 
     const [hasSelection, setHasSelection] = useState(true);
 
+    // Alert State
+    const [alertConfig, setAlertConfig] = useState<{
+        open: boolean;
+        title: string;
+        description: string;
+        buttonText: string;
+        onButtonPress?: () => void;
+    }>({
+        open: false,
+        title: '',
+        description: '',
+        buttonText: '확인',
+        onButtonPress: undefined,
+    });
+
     const { handleMoveToCurrentLocation } = useMoveToCurrentLocation({
         naverMapRef,
         onLocationUpdated: ({ latitude, longitude }) => {
@@ -66,6 +81,15 @@ export default function LocationScreen() {
                 latitude,
                 longitude,
                 address: '',
+            });
+        },
+        onError: ({ title, message, confirmText = '확인', onConfirm }) => {
+            setAlertConfig({
+                open: true,
+                title,
+                description: message,
+                buttonText: confirmText,
+                onButtonPress: onConfirm,
             });
         },
     });
@@ -184,6 +208,19 @@ export default function LocationScreen() {
                     });
                 }}>해당 위치로 흡연구역을 설정할게요</FixedBottomCTA>
             </FixedBottomCTAProvider>
+
+            <AlertDialog
+                open={alertConfig.open}
+                title={alertConfig.title}
+                description={alertConfig.description}
+                buttonText={alertConfig.buttonText}
+                onButtonPress={() => {
+                    setAlertConfig(prev => ({ ...prev, open: false }));
+                    alertConfig.onButtonPress?.();
+                }}
+                onClose={() => setAlertConfig(prev => ({ ...prev, open: false }))}
+                onExited={() => { }}
+            />
         </View>
     );
 }

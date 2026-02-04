@@ -59,13 +59,22 @@ export default function ReportImageSection({ formData, updateForm, latitude, lon
 }
 
 function ImagePickerCard({ currentCount, maxCount, onPress }: { currentCount: number; maxCount: number; onPress: () => void }) {
-    const isActive = currentCount > 0 && currentCount < maxCount;
+    const isFull = currentCount >= maxCount;
+    const isEmpty = currentCount === 0;
+
     return (
         <Pressable onPress={onPress} style={styles.pickerCard}>
-            <Asset.Icon name='icon-camera' color={theme.colors.gray[60]} />
+            <Asset.Icon name='icon-camera' color={isFull ? theme.colors.gray[60] : theme.colors.gray[60]} />
             <View style={styles.countContainer}>
-                <Text style={[styles.countText, isActive ? styles.textActive : styles.textFull]}>{currentCount}</Text>
-                <Text style={styles.countTotal}>/{maxCount}</Text>
+                <Text style={[
+                    styles.countText,
+                    isEmpty && styles.textEmpty,
+                    isFull && styles.textFull
+                ]}>{currentCount}</Text>
+                <Text style={[
+                    styles.countTotal,
+                    isFull && styles.textFull
+                ]}>/{maxCount}</Text>
             </View>
         </Pressable>
     );
@@ -84,10 +93,11 @@ const styles = StyleSheet.create({
         gap: 4,
     },
     countContainer: { flexDirection: 'row' },
-    countText: { ...theme.text.m.m },
-    countTotal: { ...theme.text.m.r, color: theme.colors.text.tertiary },
+    countText: { ...theme.text.m.m, color: theme.colors.primary[50] },
+    countTotal: { ...theme.text.m.r, color: theme.colors.gray[60] },
     textActive: { color: theme.colors.brand.primary },
-    textFull: { color: theme.colors.text.tertiary },
+    textFull: { ...theme.text.m.m, color: theme.colors.gray[80] },
+    textEmpty: { color: theme.colors.gray[60] },
 
     imageWrapper: {
         width: 96, height: 96,

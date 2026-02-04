@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Alert, Linking } from 'react-native';
+import { Linking } from 'react-native';
 import { getCurrentLocation, Accuracy } from '@apps-in-toss/framework';
 
 import { NaverMapHandle } from '../components/NaverMapView'; // Ensure proper import path
@@ -9,9 +9,10 @@ interface UseMoveToCurrentLocationProps {
   googleMapRef?: unknown;
   naverMapRef?: React.RefObject<NaverMapHandle>;
   onLocationUpdated: (coords: { latitude: number; longitude: number }) => void;
+  onError?: (error: { title: string; message: string; confirmText?: string; onConfirm?: () => void }) => void;
 }
 
-export function useMoveToCurrentLocation({ naverMapRef, onLocationUpdated }: UseMoveToCurrentLocationProps) {
+export function useMoveToCurrentLocation({ naverMapRef, onLocationUpdated, onError }: UseMoveToCurrentLocationProps) {
   const handleMoveToCurrentLocation = useCallback(async () => {
     try {
       // 1. 권한 확인 및 요청
@@ -21,7 +22,10 @@ export function useMoveToCurrentLocation({ naverMapRef, onLocationUpdated }: Use
       if (permission === 'denied' || permission === 'notDetermined') {
         const result = await getCurrentLocation.openPermissionDialog();
         if (result === 'denied') {
-          Alert.alert('권한 필요', '위치 정보를 사용하려면 권한 허용이 필요합니다.');
+          onError?.({
+            title: '권한 필요',
+            message: '위치 정보를 사용하려면 권한 허용이 필요해요.',
+          });
           return;
         }
       }
@@ -50,16 +54,14 @@ export function useMoveToCurrentLocation({ naverMapRef, onLocationUpdated }: Use
       onLocationUpdated(currentLocation);
     } catch (error) {
       console.error('Failed to get current location:', JSON.stringify(error, null, 2));
-      Alert.alert(
-        '위치 오류',
-        `현재 위치를 가져올 수 없습니다.\n(${JSON.stringify(error)})\n\n정확한 위치가 켜져있는지 확인해주시거나 설정으로 이동해 확인해주세요.`,
-        [
-          { text: '취소', style: 'cancel' },
-          { text: '설정으로 이동', onPress: () => Linking.openSettings() },
-        ],
-      );
+      onError?.({
+        title: '위치 오류',
+        message: `현재 위치를 가져올 수 없습니다.\n(${JSON.stringify(error)})\n\n정확한 위치가 켜져있는지 확인해주시거나 설정으로 이동해 확인해주세요.`,
+        confirmText: '설정으로 이동',
+        onConfirm: () => { Linking.openSettings(); },
+      });
     }
-  }, [naverMapRef, onLocationUpdated]);
+  }, [naverMapRef, onLocationUpdated, onError]);
 
   return { handleMoveToCurrentLocation };
 }
