@@ -14,8 +14,9 @@ interface InitResponse {
     error?: string;
 }
 
-interface PresignedUrlResponse extends UploadInfo {
+interface PresignedUrlResponse {
     success: boolean;
+    data?: UploadInfo & { zoneId: string };
     error?: string;
 }
 
@@ -104,10 +105,12 @@ export const reportZone = async (
                     }),
                 });
 
-                if (!urlData.success) throw new Error(urlData.error);
+                if (!urlData.success || !urlData.data) {
+                    throw new Error(urlData.error || 'Failed to create upload URL');
+                }
 
                 // 2. Upload & Register
-                await uploadAndRegisterImage(zoneId!, img, urlData);
+                await uploadAndRegisterImage(zoneId!, img, urlData.data);
 
                 counter++;
             }
@@ -127,7 +130,7 @@ export const reportZone = async (
 async function uploadAndRegisterImage(
     zoneId: string,
     imageFile: ImageFile,
-    uploadInfo: { signedUrl: string, path: string, fileName: string }
+    uploadInfo: Pick<UploadInfo, 'signedUrl' | 'fileName'>
 ) {
     // 1. Upload PUT (Direct S3 upload - do not use apiFetch)
     const imageRes = await fetch(imageFile.uri);
@@ -150,10 +153,8 @@ async function uploadAndRegisterImage(
         method: 'POST',
         body: JSON.stringify({
             zoneId,
-            path: uploadInfo.path,
             fileName: uploadInfo.fileName,
             fileType: imageFile.type,
-            userId: undefined
         }),
     });
 
