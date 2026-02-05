@@ -14,10 +14,27 @@ import MapIcon from '@/shared/assets/MapIcon';
 import { saveSessionToken, getSessionToken, clearSessionToken } from '@/shared/utils/storage';
 
 import { validateSession } from '@/shared/api/session-check';
+import * as Sentry from '@sentry/react-native';
 
 export default function HomeScreen() {
   const adaptive = useAdaptive();
   const navigation = useNavigation();
+
+  useEffect(() => {
+    const testSentry = async () => {
+      Sentry.captureMessage('AIT Sentry test: hello', 'info');
+
+      try {
+        throw new Error('AIT Sentry test: exception');
+      } catch (e) {
+        Sentry.captureException(e);
+      }
+
+      await Sentry.flush?.(2000);
+    };
+
+    testSentry();
+  }, []);
 
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isLoginFailed, setIsLoginFailed] = useState(false);

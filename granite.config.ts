@@ -1,13 +1,13 @@
-
 import { appsInToss } from '@apps-in-toss/framework/plugins';
 import { defineConfig } from '@granite-js/react-native/config';
+import { sentry } from '@granite-js/plugin-sentry';
 import { env } from '@granite-js/plugin-env';
-
 
 export default defineConfig({
   scheme: 'intoss',
   appName: 'puffzone',
   plugins: [
+    sentry({ useClient: false }),
     appsInToss({
       brand: {
         displayName: '퍼프존', // 화면에 노출될 앱의 한글 이름으로 바꿔주세요.
@@ -16,8 +16,8 @@ export default defineConfig({
       },
       permissions: [
         {
-          name: "geolocation",
-          access: "access",
+          name: 'geolocation',
+          access: 'access',
         },
         { name: 'photos', access: 'read' },
         { name: 'camera', access: 'access' },
@@ -26,8 +26,7 @@ export default defineConfig({
     env({
       NAVER_MAP_APPLICATION: 'puffzone',
       NAVER_MAP_CLIENT_ID: '51wm2hbym8',
-      BASE_URL: 'https://employee-gather-sociology-desktop.trycloudflare.com',
-    })
+      BASE_URL: 'https://www.puffzone.co.kr',
+    }),
   ],
-
 });
