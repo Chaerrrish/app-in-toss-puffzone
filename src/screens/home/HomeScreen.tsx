@@ -12,7 +12,6 @@ import { loginWithToss } from '@/shared/api/auth';
 import { useState, useEffect } from 'react';
 import MapIcon from '@/shared/assets/MapIcon';
 import { saveSessionToken, getSessionToken, clearSessionToken } from '@/shared/utils/storage';
-
 import { validateSession } from '@/shared/api/session-check';
 import * as Sentry from '@sentry/react-native';
 
@@ -20,37 +19,24 @@ export default function HomeScreen() {
   const adaptive = useAdaptive();
   const navigation = useNavigation();
 
-  useEffect(() => {
-    const testSentry = async () => {
-      Sentry.captureMessage('AIT Sentry test: hello', 'info');
-
-      try {
-        throw new Error('AIT Sentry test: exception');
-      } catch (e) {
-        Sentry.captureException(e);
-      }
-
-      await Sentry.flush?.(2000);
-    };
-
-    testSentry();
-  }, []);
-
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isLoginFailed, setIsLoginFailed] = useState(false);
-
   useEffect(() => {
     const checkSession = async () => {
-      const token = await getSessionToken();
-      if (token) {
-        const isValid = await validateSession();
-        if (isValid) {
-          console.log('Session valid, auto-logging in...');
-          navigation.navigate('/location');
-        } else {
-          console.log('Session invalid, clearing...');
-          await clearSessionToken();
+      try {
+        const token = await getSessionToken();
+        if (token) {
+          const isValid = await validateSession();
+          if (isValid) {
+            console.log('Session valid, auto-logging in...');
+            navigation.navigate('/location');
+          } else {
+            console.log('Session invalid, clearing...');
+            await clearSessionToken();
+          }
         }
+      } catch (e) {
+        Sentry.captureException(e);
       }
     };
     checkSession();
@@ -71,10 +57,12 @@ export default function HomeScreen() {
         await saveSessionToken(token);
         navigation.navigate('/location');
       } else {
+        Sentry.captureMessage('Login failed or no session token', 'error');
         console.error('Login failed or no session token');
         setIsLoginFailed(true);
       }
     } catch (error) {
+      Sentry.captureException(error);
       console.error('Failed to login:', error);
       setIsLoginFailed(true);
     } finally {

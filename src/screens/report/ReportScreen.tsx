@@ -1,7 +1,6 @@
 import { theme } from '@/shared/styles/theme';
 import { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, View, Button } from 'react-native';
-import * as Sentry from '@sentry/react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { Spacing, useNavigation, createRoute } from '@granite-js/react-native';
 import { z as zod } from 'zod';
 import ReportLocationSection from './widgets/ReportLocationSection';
@@ -14,258 +13,252 @@ import ReportFeatureSection from './widgets/ReportFeatureSection';
 import ReportImageSection from './widgets/ReportImageSection';
 
 export interface ReportScreenParams {
-  latitude: number;
-  longitude: number;
-  address: string;
-  newPhotos?: (string | { uri: string })[];
+    latitude: number;
+    longitude: number;
+    address: string;
+    newPhotos?: (string | { uri: string })[];
 }
 
 export default function ReportScreen() {
-  const params = Route.useParams() as unknown as ReportScreenParams;
-  const navigation = useNavigation();
+    const params = Route.useParams() as unknown as ReportScreenParams;
+    const navigation = useNavigation();
 
-  // Form State
-  const [formData, setFormData] = useState<ReportFormData>({
-    name: '',
-    description: '',
-    category: 'CATEGORY_GENERAL',
-    features: [],
-    photos: [],
-  });
-  const [infoModal, setInfoModal] = useState<ReportInfoModalType>(null);
-  // const [isSubmitting, setIsSubmitting] = useState(false);
+    // Form State
+    const [formData, setFormData] = useState<ReportFormData>({
+        name: '',
+        description: '',
+        category: 'CATEGORY_GENERAL',
+        features: [],
+        photos: [],
+    });
+    const [infoModal, setInfoModal] = useState<ReportInfoModalType>(null);
+    // const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Alert State
-  const [alertConfig, setAlertConfig] = useState<{
-    open: boolean;
-    title: string;
-    description: string;
-  }>({
-    open: false,
-    title: '',
-    description: '',
-  });
+    // Alert State
+    const [alertConfig, setAlertConfig] = useState<{
+        open: boolean;
+        title: string;
+        description: string;
+    }>({
+        open: false,
+        title: '',
+        description: '',
+    });
 
-  const showAlert = (title: string, description: string) => {
-    setAlertConfig({ open: true, title, description });
-  };
+    const showAlert = (title: string, description: string) => {
+        setAlertConfig({ open: true, title, description });
+    };
 
-  useEffect(() => {
-    if (params.newPhotos && Array.isArray(params.newPhotos)) {
-      // Append new photos
-      const newUris = params.newPhotos
-        .map((p) => {
-          if (typeof p === 'string') return p;
-          return p.uri;
-        })
-        .filter(Boolean) as string[];
-      setFormData((prev) => {
-        // Avoid duplicates basic check
-        const combined = [...prev.photos, ...newUris];
-        // Unique
-        const unique = Array.from(new Set(combined));
+    useEffect(() => {
+        if (params.newPhotos && Array.isArray(params.newPhotos)) {
+            // Append new photos
+            const newUris = params.newPhotos
+                .map((p) => {
+                    if (typeof p === 'string') return p;
+                    return p.uri;
+                })
+                .filter(Boolean) as string[];
+            setFormData((prev) => {
+                // Avoid duplicates basic check
+                const combined = [...prev.photos, ...newUris];
+                // Unique
+                const unique = Array.from(new Set(combined));
 
-        if (unique.length > 10) {
-          showAlert('알림', '사진은 최대 10장까지만 업로드할 수 있습니다.');
-          return { ...prev, photos: unique.slice(0, 10) };
+                if (unique.length > 10) {
+                    showAlert('알림', '사진은 최대 10장까지만 업로드할 수 있습니다.');
+                    return { ...prev, photos: unique.slice(0, 10) };
+                }
+
+                return { ...prev, photos: unique };
+            });
         }
+    }, [params.newPhotos]);
 
-        return { ...prev, photos: unique };
-      });
-    }
-  }, [params.newPhotos]);
+    const updateForm = (data: Partial<ReportFormData>) => {
+        setFormData((prev) => ({ ...prev, ...data }));
+    };
 
-  const updateForm = (data: Partial<ReportFormData>) => {
-    setFormData((prev) => ({ ...prev, ...data }));
-  };
+    // const handleSubmit = async () => {
+    //     if (formData.photos.length === 0) {
+    //         showAlert('알림', '최소 1장의 사진을 등록해주세요.');
+    //         return;
+    //     }
 
-  // const handleSubmit = async () => {
-  //     if (formData.photos.length === 0) {
-  //         showAlert('알림', '최소 1장의 사진을 등록해주세요.');
-  //         return;
-  //     }
+    //     if (!formData.name) {
+    //         showAlert('알림', '장소명을 입력해주세요.');
+    //         return;
+    //     }
 
-  //     if (!formData.name) {
-  //         showAlert('알림', '장소명을 입력해주세요.');
-  //         return;
-  //     }
+    //     setIsSubmitting(true);
+    //     try {
+    //         const imageFiles = formData.photos.map(uri => ({
+    //             uri,
+    //             type: 'image/jpeg', // Default or infer
+    //             name: uri.split('/').pop() || 'upload.jpg',
+    //         }));
 
-  //     setIsSubmitting(true);
-  //     try {
-  //         const imageFiles = formData.photos.map(uri => ({
-  //             uri,
-  //             type: 'image/jpeg', // Default or infer
-  //             name: uri.split('/').pop() || 'upload.jpg',
-  //         }));
+    //         const result = await reportZone({
+    //             name: formData.name,
+    //             lat: Number(params.latitude),
+    //             lng: Number(params.longitude),
+    //             kind: 'SMOKING', // Default for now
+    //             address: params.address,
+    //             description: formData.description,
+    //             category: formData.category,
+    //             features: formData.features,
+    //             // userId: User ID from auth context?
+    //         }, imageFiles);
 
-  //         const result = await reportZone({
-  //             name: formData.name,
-  //             lat: Number(params.latitude),
-  //             lng: Number(params.longitude),
-  //             kind: 'SMOKING', // Default for now
-  //             address: params.address,
-  //             description: formData.description,
-  //             category: formData.category,
-  //             features: formData.features,
-  //             // userId: User ID from auth context?
-  //         }, imageFiles);
+    //         if (result.success) {
+    //             navigation.navigate('/success');
+    //         } else {
+    //             showAlert('제보 실패', result.error || '알 수 없는 오류가 발생했습니다.');
+    //         }
+    //     } catch (e: unknown) {
+    //         const errorMessage = e instanceof Error ? e.message : '알 수 없는 오류가 발생했습니다.';
+    //         showAlert('오류', errorMessage);
+    //     } finally {
+    //         setIsSubmitting(false);
+    //     }
+    // };
 
-  //         if (result.success) {
-  //             navigation.navigate('/success');
-  //         } else {
-  //             showAlert('제보 실패', result.error || '알 수 없는 오류가 발생했습니다.');
-  //         }
-  //     } catch (e: unknown) {
-  //         const errorMessage = e instanceof Error ? e.message : '알 수 없는 오류가 발생했습니다.';
-  //         showAlert('오류', errorMessage);
-  //     } finally {
-  //         setIsSubmitting(false);
-  //     }
-  // };
-
-  return (
-    <>
-      <FixedBottomCTAProvider
-        wrapper={ScrollView}
-        wrapperProps={{
-          onTouchStart: () => {
-            if (infoModal) setInfoModal(null); // Close modal on outside tap
-          },
-          style: styles.container,
-        }}
-      >
-        <View style={styles.scrollContent}>
-          <ReportLocationSection
-            address={params.address ?? ''}
-            latitude={Number(params.latitude)}
-            longitude={Number(params.longitude)}
-          />
-          <ReportFormSection
-            formData={formData}
-            updateForm={updateForm}
-            infoModal={infoModal}
-            onInfoModalChange={setInfoModal}
-          />
-          <ReportCategorySection formData={formData} updateForm={updateForm} />
-          <ReportFeatureSection formData={formData} updateForm={updateForm} />
-          <ReportImageSection
-            formData={formData}
-            updateForm={updateForm}
-            latitude={Number(params.latitude)}
-            longitude={Number(params.longitude)}
-            address={params.address}
-          />
-        </View>
-        <Spacing size={24} />
-        <BottomInfo style={{ paddingHorizontal: 0 }}>
-          <Post.H4>유의사항</Post.H4>
-          <Post.Ul>
-            <Post.Li>
-              <Post.Paragraph typography="t6">퍼프존 서비스는 주식회사 포트존에서 제공합니다.</Post.Paragraph>
-            </Post.Li>
-            <Post.Li>
-              <Post.Paragraph typography="t6">포인트 적립은 하루 5번(최대 100p)까지 가능합니다.</Post.Paragraph>
-            </Post.Li>
-            <Post.Li>
-              <Post.Paragraph typography="t6">{`지급된 포인트는 [혜택 -> 내 포인트] 에서 확인하실 수 있습니다.`}</Post.Paragraph>
-            </Post.Li>
-            <Post.Li>
-              <Post.Paragraph typography="t6">
-                네트워크 장애 등으로 인해 포인트 지급이 지연될 수 있습니다.
-              </Post.Paragraph>
-            </Post.Li>
-          </Post.Ul>
-        </BottomInfo>
-        {/* <FixedBottomCTA
+    return (
+        <>
+            <FixedBottomCTAProvider
+                wrapper={ScrollView}
+                wrapperProps={{
+                    onTouchStart: () => {
+                        if (infoModal) setInfoModal(null); // Close modal on outside tap
+                    },
+                    style: styles.container,
+                }}
+            >
+                <View style={styles.scrollContent}>
+                    <ReportLocationSection
+                        address={params.address ?? ''}
+                        latitude={Number(params.latitude)}
+                        longitude={Number(params.longitude)}
+                    />
+                    <ReportFormSection
+                        formData={formData}
+                        updateForm={updateForm}
+                        infoModal={infoModal}
+                        onInfoModalChange={setInfoModal}
+                    />
+                    <ReportCategorySection formData={formData} updateForm={updateForm} />
+                    <ReportFeatureSection formData={formData} updateForm={updateForm} />
+                    <ReportImageSection
+                        formData={formData}
+                        updateForm={updateForm}
+                        latitude={Number(params.latitude)}
+                        longitude={Number(params.longitude)}
+                        address={params.address}
+                    />
+                </View>
+                <Spacing size={24} />
+                <BottomInfo style={{ paddingHorizontal: 0 }}>
+                    <Post.H4>유의사항</Post.H4>
+                    <Post.Ul>
+                        <Post.Li>
+                            <Post.Paragraph typography="t6">퍼프존 서비스는 주식회사 포트존에서 제공합니다.</Post.Paragraph>
+                        </Post.Li>
+                        <Post.Li>
+                            <Post.Paragraph typography="t6">포인트 적립은 하루 5번(최대 100p)까지 가능합니다.</Post.Paragraph>
+                        </Post.Li>
+                        <Post.Li>
+                            <Post.Paragraph typography="t6">{`지급된 포인트는 [혜택 -> 내 포인트] 에서 확인하실 수 있습니다.`}</Post.Paragraph>
+                        </Post.Li>
+                        <Post.Li>
+                            <Post.Paragraph typography="t6">
+                                네트워크 장애 등으로 인해 포인트 지급이 지연될 수 있습니다.
+                            </Post.Paragraph>
+                        </Post.Li>
+                    </Post.Ul>
+                </BottomInfo>
+                {/* <FixedBottomCTA
                     loading={isSubmitting}
                     onPress={handleSubmit}
                     disabled={!formData.name || !formData.description || formData.photos.length === 0}
                 >
                     제보하기
                 </FixedBottomCTA> */}
-        <FixedBottomCTA
-          // loading={isSubmitting}
-          onPress={() => {
-            navigation.navigate('/success');
-          }}
-          disabled={false}
-        >
-          제보하기
-        </FixedBottomCTA>
-      </FixedBottomCTAProvider>
-      <Button
-        title="Try!"
-        onPress={() => {
-          Sentry.captureException(new Error('First error'));
-        }}
-      />
+                <FixedBottomCTA
+                    // loading={isSubmitting}
+                    onPress={() => {
+                        navigation.navigate('/success');
+                    }}
+                    disabled={false}
+                >
+                    제보하기
+                </FixedBottomCTA>
+            </FixedBottomCTAProvider>
 
-      <AlertDialog
-        open={alertConfig.open}
-        title={alertConfig.title}
-        description={alertConfig.description}
-        buttonText="확인"
-        onButtonPress={() => setAlertConfig((prev) => ({ ...prev, open: false }))}
-        onClose={() => setAlertConfig((prev) => ({ ...prev, open: false }))}
-        onExited={() => {}}
-      />
-    </>
-  );
+            <AlertDialog
+                open={alertConfig.open}
+                title={alertConfig.title}
+                description={alertConfig.description}
+                buttonText="확인"
+                onButtonPress={() => setAlertConfig((prev) => ({ ...prev, open: false }))}
+                onClose={() => setAlertConfig((prev) => ({ ...prev, open: false }))}
+                onExited={() => { }}
+            />
+        </>
+    );
 }
 
 export const Route = createRoute('/report', {
-  component: ReportScreen,
-  validateParams: zod.object({
-    latitude: zod.number(),
-    longitude: zod.number(),
-    address: zod.string(),
-    newPhotos: zod.array(zod.union([zod.string(), zod.object({ uri: zod.string() })])).optional(),
-  }),
+    component: ReportScreen,
+    validateParams: zod.object({
+        latitude: zod.number(),
+        longitude: zod.number(),
+        address: zod.string(),
+        newPhotos: zod.array(zod.union([zod.string(), zod.object({ uri: zod.string() })])).optional(),
+    }),
 });
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background.primary,
-  },
-  scrollContent: {
-    gap: 32,
-    paddingHorizontal: 16,
-  },
-  sectionContainer: {
-    gap: 16,
-  },
-  sectionTitle: {
-    ...theme.text.l.b,
-    color: theme.colors.text.primary,
-  },
-  contentGap: {
-    gap: 8,
-  },
-  mapWrapper: {
-    height: 100,
-    position: 'relative',
-    overflow: 'hidden',
-    borderRadius: 8,
-  },
-  mapContainer: {
-    flex: 1,
-  },
-  changeBadge: {
-    position: 'absolute',
-    bottom: 8,
-    right: 8,
-    borderRadius: 6,
-    backgroundColor: theme.colors.background.overlay,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  changeBadgeText: {
-    ...theme.text.s.sb,
-    color: theme.colors.text.white,
-  },
-  addressText: {
-    ...theme.text.m.r,
-    color: theme.colors.text.tertiary,
-  },
+    container: {
+        flex: 1,
+        backgroundColor: theme.colors.background.primary,
+    },
+    scrollContent: {
+        gap: 32,
+        paddingHorizontal: 16,
+    },
+    sectionContainer: {
+        gap: 16,
+    },
+    sectionTitle: {
+        ...theme.text.l.b,
+        color: theme.colors.text.primary,
+    },
+    contentGap: {
+        gap: 8,
+    },
+    mapWrapper: {
+        height: 100,
+        position: 'relative',
+        overflow: 'hidden',
+        borderRadius: 8,
+    },
+    mapContainer: {
+        flex: 1,
+    },
+    changeBadge: {
+        position: 'absolute',
+        bottom: 8,
+        right: 8,
+        borderRadius: 6,
+        backgroundColor: theme.colors.background.overlay,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+    },
+    changeBadgeText: {
+        ...theme.text.s.sb,
+        color: theme.colors.text.white,
+    },
+    addressText: {
+        ...theme.text.m.r,
+        color: theme.colors.text.tertiary,
+    },
 });
