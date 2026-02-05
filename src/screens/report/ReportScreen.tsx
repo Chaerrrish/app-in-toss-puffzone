@@ -6,8 +6,8 @@ import { z as zod } from 'zod';
 import ReportLocationSection from './widgets/ReportLocationSection';
 import { ReportFormData } from './types';
 import ReportFormSection, { ReportInfoModalType } from './widgets/ReportFormSection';
-// import { reportZone } from "@/shared/api/report_zone";
-import { BottomInfo, FixedBottomCTA, FixedBottomCTAProvider, Post, AlertDialog } from '@toss/tds-react-native';
+import { reportZone } from "@/shared/api/report_zone";
+import { BottomInfo, FixedBottomCTA, FixedBottomCTAProvider, Post, AlertDialog, Button as TdsButton } from '@toss/tds-react-native';
 import ReportCategorySection from './widgets/ReportCategorySection';
 import ReportFeatureSection from './widgets/ReportFeatureSection';
 import ReportImageSection from './widgets/ReportImageSection';
@@ -32,7 +32,7 @@ export default function ReportScreen() {
         photos: [],
     });
     const [infoModal, setInfoModal] = useState<ReportInfoModalType>(null);
-    // const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Alert State
     const [alertConfig, setAlertConfig] = useState<{
@@ -122,6 +122,49 @@ export default function ReportScreen() {
     //     }
     // };
 
+    const handleSubmit = async () => {
+        if (formData.photos.length === 0) {
+            showAlert('알림', '최소 1장의 사진을 등록해주세요.');
+            return;
+        }
+
+        if (!formData.name) {
+            showAlert('알림', '장소명을 입력해주세요.');
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const imageFiles = formData.photos.map(uri => ({
+                uri,
+                type: 'image/jpeg', // Default or infer
+                name: uri.split('/').pop() || 'upload.jpg',
+            }));
+
+            const result = await reportZone({
+                name: formData.name,
+                lat: Number(params.latitude),
+                lng: Number(params.longitude),
+                kind: 'SMOKING', // Default for now
+                address: params.address,
+                description: formData.description,
+                category: formData.category,
+                features: formData.features,
+            }, imageFiles);
+
+            if (result.success && result.zoneId) {
+                navigation.navigate('/success', { zoneId: result.zoneId });
+            } else {
+                showAlert('제보 실패', result.error || '알 수 없는 오류가 발생했습니다.');
+            }
+        } catch (e: unknown) {
+            const errorMessage = e instanceof Error ? e.message : '알 수 없는 오류가 발생했습니다.';
+            showAlert('오류', errorMessage);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     return (
         <>
             <FixedBottomCTAProvider
@@ -175,14 +218,14 @@ export default function ReportScreen() {
                         </Post.Li>
                     </Post.Ul>
                 </BottomInfo>
-                {/* <FixedBottomCTA
+                <FixedBottomCTA
                     loading={isSubmitting}
                     onPress={handleSubmit}
                     disabled={!formData.name || !formData.description || formData.photos.length === 0}
                 >
                     제보하기
-                </FixedBottomCTA> */}
-                <FixedBottomCTA
+                </FixedBottomCTA>
+                {/* <FixedBottomCTA
                     // loading={isSubmitting}
                     onPress={() => {
                         navigation.navigate('/success');
@@ -190,7 +233,7 @@ export default function ReportScreen() {
                     disabled={false}
                 >
                     제보하기
-                </FixedBottomCTA>
+                </FixedBottomCTA> */}
             </FixedBottomCTAProvider>
 
             <AlertDialog

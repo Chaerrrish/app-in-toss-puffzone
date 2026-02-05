@@ -19,8 +19,10 @@ export default function HomeScreen() {
   const adaptive = useAdaptive();
   const navigation = useNavigation();
 
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isLoginFailed, setIsLoginFailed] = useState(false);
+
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -30,6 +32,7 @@ export default function HomeScreen() {
           if (isValid) {
             console.log('Session valid, auto-logging in...');
             navigation.navigate('/location');
+            return; // Prevent setting isCheckingSession false if navigating away
           } else {
             console.log('Session invalid, clearing...');
             await clearSessionToken();
@@ -37,14 +40,17 @@ export default function HomeScreen() {
         }
       } catch (e) {
         Sentry.captureException(e);
+      } finally {
+        setIsCheckingSession(false);
       }
     };
     checkSession();
   }, []);
 
   const handleLogin = async () => {
-    if (isLoggingIn) return;
+    if (isLoggingIn || isCheckingSession) return;
     setIsLoggingIn(true);
+    // ... rest of logic
     setIsLoginFailed(false);
 
     try {
@@ -69,6 +75,10 @@ export default function HomeScreen() {
       setIsLoggingIn(false);
     }
   };
+
+  // ...
+
+  <FixedBottomCTA loading={isLoggingIn || isCheckingSession} onPress={handleLogin}>시작하기</FixedBottomCTA>
 
 
 

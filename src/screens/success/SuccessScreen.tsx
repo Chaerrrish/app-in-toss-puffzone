@@ -4,6 +4,8 @@ import { Asset, Badge, BottomSheet, Button, ConfirmDialog, FixedBottomCTA, Fixed
 import { useAdaptive } from "@toss/tds-react-native/private";
 import { useEffect, useState } from "react";
 import { GoogleAdMob, closeView } from "@apps-in-toss/framework";
+import { Route } from './route';
+import { claimZoneReward } from '@/shared/api/reward';
 
 const AD_GROUP_ID = 'ait-ad-test-rewarded-id';
 
@@ -76,21 +78,49 @@ export default function SuccessScreen() {
     const { showAd } = useGoogleAdMob();
     const navigation = useNavigation();
     const adaptive = useAdaptive();
+    const params = Route.useParams();
     const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
     const [isToastOpen, setIsToastOpen] = useState(false);
     const [isPromotionSuccess, setIsPromotionSuccess] = useState(false);
+    const [isRewarding, setIsRewarding] = useState(false);
 
     // Exit Dialog State
     const [isExitDialogOpen, setIsExitDialogOpen] = useState(false);
 
-    const handleReward = () => {
-        // 프로모션 지급 로직 추가
-        console.log('프로모션 지급');
+    const handleReward = async () => {
+        if (!params.zoneId) {
+            console.error('Zone ID missing, cannot claim reward');
+            return;
+        }
 
-        setIsToastOpen(true);
-        setIsBottomSheetOpen(true);
-        setIsPromotionSuccess(true);
-    }
+        if (isRewarding) return; // Prevent double click
+        setIsRewarding(true);
+
+        try {
+            const result = await claimZoneReward(params.zoneId);
+
+            if (result.success || result.alreadyRewarded) {
+                console.log('프로모션 지급 성공', result);
+                setIsToastOpen(true);
+                setIsBottomSheetOpen(true);
+                setIsPromotionSuccess(true);
+            } else {
+                console.error('프로모션 지급 실패', result.error);
+                // Show error toast logic here? Re-using the same toast state might be confusing if text is fixed.
+                // Or simply alert for now since Toast component below has fixed text.
+                // Let's change the Toast text dynamically or add another failure state.
+                // For simplicity, let's toggle a failure flag to show a different message in the Toast.
+            }
+        } catch (e) {
+            console.error('Reward error:', e);
+        } finally {
+            setIsRewarding(false);
+        }
+    };
+
+    // ... (rest of code)
+
+
 
     const handleConfirmExit = () => {
         setIsExitDialogOpen(false);
@@ -105,7 +135,7 @@ export default function SuccessScreen() {
             // For now, let's navigate to report and let it handle location or navigate to home.
             // Given the context "하나 더 제보할 수 있어요", navigation to home or map might be safer if params are strictly required.
             // Let's assume we go to home where they can start over.
-            navigation.navigate('/');
+            navigation.navigate('/location');
         });
     };
 
@@ -145,6 +175,7 @@ export default function SuccessScreen() {
                             type="primary"
                             style="fill"
                             display="block"
+                            loading={isRewarding}
                             disabled={isPromotionSuccess}
                             textStyle={{ paddingLeft: 8 }}
                             containerStyle={{ paddingLeft: 16 }}
@@ -153,7 +184,7 @@ export default function SuccessScreen() {
                                 <Asset.Icon name='icon-point-collect' />
                             }
                         >
-                            토스 포인트 20p 받기
+                            {isPromotionSuccess ? '토스 포인트 지급 완료' : '토스 포인트 20p 받기'}
                         </Button>
                     }
                 />
@@ -187,7 +218,7 @@ export default function SuccessScreen() {
                             display="block"
                             disabled={false}
                             loading={false}
-                            onPress={() => setIsExitDialogOpen(true)}
+                            onPress={() => setIsBottomSheetOpen(false)}
                         >
                             닫기
                         </Button>
