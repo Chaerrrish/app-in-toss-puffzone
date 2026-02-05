@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import { Spacing } from "@granite-js/react-native";
+import { Spacing, useNavigation } from "@granite-js/react-native";
 import { Asset, Badge, BottomSheet, Button, ConfirmDialog, FixedBottomCTA, FixedBottomCTAProvider, Toast, Txt } from "@toss/tds-react-native";
 import { useAdaptive } from "@toss/tds-react-native/private";
 import { useEffect, useState } from "react";
@@ -7,36 +7,74 @@ import { GoogleAdMob, closeView } from "@apps-in-toss/framework";
 
 const AD_GROUP_ID = 'ait-ad-test-rewarded-id';
 
-function useGoogleAdMobLoad() {
+function useGoogleAdMob() {
+    // Load ad on mount
     useEffect(() => {
-        console.log('useGoogleAdMobLoad: useEffect started');
+        console.log('useGoogleAdMob: useEffect started');
         if (GoogleAdMob.loadAppsInTossAdMob.isSupported() !== true) {
-            console.log('useGoogleAdMobLoad: loadAppsInTossAdMob is not supported');
+            console.log('useGoogleAdMob: loadAppsInTossAdMob is not supported');
             return;
         }
-        console.log('useGoogleAdMobLoad: Starting loadAppsInTossAdMob');
-        const cleanup = GoogleAdMob.loadAppsInTossAdMob({
+        console.log('useGoogleAdMob: Starting loadAppsInTossAdMob');
+
+        let cleanup: (() => void) | undefined;
+
+        try {
+            cleanup = GoogleAdMob.loadAppsInTossAdMob({
+                options: {
+                    adGroupId: AD_GROUP_ID,
+                },
+                onEvent: (event) => {
+                    switch (event.type) {
+                        case 'loaded':
+                            console.log('광고 로드 성공', event.data);
+                            break;
+                    }
+                },
+                onError: (error) => {
+                    console.error('광고 불러오기 실패', error);
+                },
+            });
+        } catch (e) {
+            console.error('loadAppsInTossAdMob execution failed', e);
+        }
+
+        return () => {
+            cleanup?.();
+        };
+    }, []);
+
+    const showAd = (onSuccess: () => void) => {
+        if (GoogleAdMob.showAppsInTossAdMob.isSupported() !== true) {
+            console.log('useGoogleAdMob: showAppsInTossAdMob is not supported');
+            // Fallback for dev/unsupported env -> treat as success
+            onSuccess();
+            return;
+        }
+
+        GoogleAdMob.showAppsInTossAdMob({
             options: {
                 adGroupId: AD_GROUP_ID,
             },
             onEvent: (event) => {
-                switch (event.type) {
-                    case 'loaded':
-                        console.log('광고 로드 성공', event.data);
-                        cleanup();
-                        break;
+                if (event.type === 'userEarnedReward') {
+                    console.log('광고 시청 보상이 지급되었습니다.');
+                    onSuccess();
                 }
             },
             onError: (error) => {
-                console.error('광고 불러오기 실패', error);
-                cleanup?.();
+                console.error('광고 표시 중 오류 발생', error);
+                // Optional: decide whether to navigate anyway or show error
             },
         });
-    }, []);
+    };
+
+    return { showAd };
 }
 
 export default function SuccessScreen() {
-    useGoogleAdMobLoad();
+    const { showAd } = useGoogleAdMob();
+    const navigation = useNavigation();
     const adaptive = useAdaptive();
     const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
     const [isToastOpen, setIsToastOpen] = useState(false);
@@ -47,6 +85,7 @@ export default function SuccessScreen() {
 
     const handleReward = () => {
         // 프로모션 지급 로직 추가
+        console.log('프로모션 지급');
 
         setIsToastOpen(true);
         setIsBottomSheetOpen(true);
@@ -56,6 +95,18 @@ export default function SuccessScreen() {
     const handleConfirmExit = () => {
         setIsExitDialogOpen(false);
         closeView();
+    };
+
+    const handleAdReward = () => {
+        showAd(() => {
+            // Navigate to report screen for additional report
+            // Assuming '/report' is the route path and existing params are not needed for a fresh report
+            // However, report screen might expect current location. 
+            // For now, let's navigate to report and let it handle location or navigate to home.
+            // Given the context "하나 더 제보할 수 있어요", navigation to home or map might be safer if params are strictly required.
+            // Let's assume we go to home where they can start over.
+            navigation.navigate('/');
+        });
     };
 
 
@@ -124,6 +175,7 @@ export default function SuccessScreen() {
                                 <Badge size="small" type="green" badgeStyle="fill">
                                     AD
                                 </Badge>}
+                            onPress={handleAdReward}
                         >
                             광고 보고 20p 더 받기
                         </Button>
