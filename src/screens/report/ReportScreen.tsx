@@ -181,10 +181,17 @@ export default function ReportScreen() {
                         </Post.Li>
                     </Post.Ul>
                 </BottomInfo>
-                <FixedBottomCTA
+                {/* <FixedBottomCTA
                     loading={isSubmitting}
                     onPress={handleSubmit}
                     disabled={!formData.name || !formData.description || formData.photos.length === 0}
+                >
+                    제보하기
+                </FixedBottomCTA> */}
+                <FixedBottomCTA
+                    loading={isSubmitting}
+                    onPress={() => { navigation.navigate('/success') }}
+                    disabled={false}
                 >
                     제보하기
                 </FixedBottomCTA>

@@ -26,7 +26,7 @@ export default defineConfig({
     env({
       NAVER_MAP_APPLICATION: 'puffzone',
       NAVER_MAP_CLIENT_ID: '51wm2hbym8',
-      BASE_URL: 'https://discover-figure-solve-stops.trycloudflare.com',
+      BASE_URL: 'https://employee-gather-sociology-desktop.trycloudflare.com',
     })
   ],
 
