@@ -16,9 +16,13 @@ export class AuthError extends Error {
  * - Inject Authorization header
  * - Handle 401/403 (Logout)
  */
+interface ApiFetchInit extends RequestInit {
+    skipAuth?: boolean;
+}
+
 export const apiFetch = async <T>(
     path: string,
-    init?: RequestInit
+    init?: ApiFetchInit
 ): Promise<T> => {
     const url = `${import.meta.env.BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
     console.log(`[API] Requesting: ${url}`); // Debug log
@@ -26,7 +30,7 @@ export const apiFetch = async <T>(
 
     const headers = new Headers(init?.headers);
     headers.set('Content-Type', 'application/json');
-    if (token) {
+    if (token && !init?.skipAuth) {
         headers.set('Authorization', `Bearer ${token}`);
     }
 

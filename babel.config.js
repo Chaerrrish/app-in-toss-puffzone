@@ -1,7 +1,6 @@
 module.exports = {
   presets: ['babel-preset-granite'],
   plugins: [
-    'react-native-reanimated/plugin',
     [
       'module-resolver',
       {

@@ -14,6 +14,7 @@ export const loginWithToss = async (code: string): Promise<LoginWithTossResponse
         const data = await apiFetch<LoginWithTossResponse>('/api/auth/toss/start', {
             method: 'POST',
             body: JSON.stringify({ code }),
+            skipAuth: true,
         });
         return data;
     } catch (error) {

@@ -12,36 +12,45 @@ import { loginWithToss } from '@/shared/api/auth';
 import { useState, useEffect } from 'react';
 import MapIcon from '@/shared/assets/MapIcon';
 import { saveSessionToken, getSessionToken, clearSessionToken } from '@/shared/utils/storage';
-
 import { validateSession } from '@/shared/api/session-check';
+import * as Sentry from '@sentry/react-native';
 
 export default function HomeScreen() {
   const adaptive = useAdaptive();
   const navigation = useNavigation();
 
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isLoginFailed, setIsLoginFailed] = useState(false);
 
   useEffect(() => {
     const checkSession = async () => {
-      const token = await getSessionToken();
-      if (token) {
-        const isValid = await validateSession();
-        if (isValid) {
-          console.log('Session valid, auto-logging in...');
-          navigation.navigate('/location');
-        } else {
-          console.log('Session invalid, clearing...');
-          await clearSessionToken();
+      try {
+        const token = await getSessionToken();
+        if (token) {
+          const isValid = await validateSession();
+          if (isValid) {
+            console.log('Session valid, auto-logging in...');
+            navigation.navigate('/location');
+            return; // Prevent setting isCheckingSession false if navigating away
+          } else {
+            console.log('Session invalid, clearing...');
+            await clearSessionToken();
+          }
         }
+      } catch (e) {
+        Sentry.captureException(e);
+      } finally {
+        setIsCheckingSession(false);
       }
     };
     checkSession();
   }, []);
 
   const handleLogin = async () => {
-    if (isLoggingIn) return;
+    if (isLoggingIn || isCheckingSession) return;
     setIsLoggingIn(true);
+    // ... rest of logic
     setIsLoginFailed(false);
 
     try {
@@ -54,16 +63,22 @@ export default function HomeScreen() {
         await saveSessionToken(token);
         navigation.navigate('/location');
       } else {
+        Sentry.captureMessage('Login failed or no session token', 'error');
         console.error('Login failed or no session token');
         setIsLoginFailed(true);
       }
     } catch (error) {
+      Sentry.captureException(error);
       console.error('Failed to login:', error);
       setIsLoginFailed(true);
     } finally {
       setIsLoggingIn(false);
     }
   };
+
+  // ...
+
+  <FixedBottomCTA loading={isLoggingIn || isCheckingSession} onPress={handleLogin}>시작하기</FixedBottomCTA>
 
 
 
