@@ -1,11 +1,11 @@
 import { View } from "react-native";
-import { Spacing, useNavigation } from "@granite-js/react-native";
+import { Spacing, useNavigation, createRoute } from "@granite-js/react-native";
 import { Asset, Badge, BottomSheet, Button, ConfirmDialog, FixedBottomCTA, FixedBottomCTAProvider, Toast, Txt } from "@toss/tds-react-native";
 import { useAdaptive } from "@toss/tds-react-native/private";
 import { useEffect, useState } from "react";
 import { GoogleAdMob, closeView } from "@apps-in-toss/framework";
-import { Route } from './route';
 import { claimZoneReward } from '@/shared/api/reward';
+import { z } from 'zod';
 
 const AD_GROUP_ID = 'ait-ad-test-rewarded-id';
 
@@ -243,3 +243,10 @@ export default function SuccessScreen() {
         </>
     );
 }
+
+export const Route = createRoute('/success', {
+    component: SuccessScreen,
+    validateParams: z.object({
+        zoneId: z.string().optional(),
+    }),
+});
