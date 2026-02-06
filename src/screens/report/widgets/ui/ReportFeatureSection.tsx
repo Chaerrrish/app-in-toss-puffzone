@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { theme } from '@/shared/styles/theme';
-import { ReportFormData, ZoneFeature } from '../types';
+import { ReportFormData, ZoneFeature } from '@/screens/report/types';
 
 interface ReportFeatureSectionProps {
     formData: ReportFormData;

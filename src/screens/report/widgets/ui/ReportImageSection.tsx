@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, StyleSheet, Pressable, Image } from 'react-native';
 import { theme } from '@/shared/styles/theme';
-import { ReportFormData } from '../types';
+import { ReportFormData } from '@/screens/report/types';
 import { Asset } from '@toss/tds-react-native';
 import { useNavigation } from '@granite-js/react-native';
 

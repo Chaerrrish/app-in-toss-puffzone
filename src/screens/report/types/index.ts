@@ -18,3 +18,5 @@ export interface ReportFormData {
     features: ZoneFeature[];
     photos: string[];
 }
+
+export type ReportInfoModalType = 'name' | 'description' | null;

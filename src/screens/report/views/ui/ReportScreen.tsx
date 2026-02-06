@@ -3,14 +3,10 @@ import { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Spacing, useNavigation, createRoute } from '@granite-js/react-native';
 import { z as zod } from 'zod';
-import ReportLocationSection from './widgets/ReportLocationSection';
-import { ReportFormData } from './types';
-import ReportFormSection, { ReportInfoModalType } from './widgets/ReportFormSection';
+import { ReportFormData, ReportInfoModalType } from '@/screens/report';
 import { reportZone } from "@/shared/api/report_zone";
 import { BottomInfo, FixedBottomCTA, FixedBottomCTAProvider, Post, AlertDialog } from '@toss/tds-react-native';
-import ReportCategorySection from './widgets/ReportCategorySection';
-import ReportFeatureSection from './widgets/ReportFeatureSection';
-import ReportImageSection from './widgets/ReportImageSection';
+import { ReportCategorySection, ReportFeatureSection, ReportFormSection, ReportImageSection, ReportLocationSection } from '@/screens/report/widgets';
 
 export interface ReportScreenParams {
     latitude: number;
