@@ -199,7 +199,7 @@ export default function LocationScreen() {
             </View>
 
             <FixedBottomCTAProvider>
-                <FixedBottomCTA disabled={!hasSelection} onPress={() => {
+                <FixedBottomCTA disabled={!hasSelection || !formData.address} onPress={() => {
                     handleConfirm();
                     navigation.navigate('/report', {
                         latitude: selectedCoords.latitude,
