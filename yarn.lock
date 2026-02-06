@@ -2,15 +2,15 @@
 # yarn lockfile v1
 
 
-"@apps-in-toss/analytics@1.8.0":
-  version "1.8.0"
-  resolved "https://registry.npmjs.org/@apps-in-toss/analytics/-/analytics-1.8.0.tgz"
-  integrity sha512-TCMHSHQu0Kfb3d9ajP2CGNC8UzD3wpyX+ZNaALevEb25eDxitpKpeLwq88VOe4JwtdOf723vZ10UygTq2FW9LA==
+"@apps-in-toss/analytics@1.9.2":
+  version "1.9.2"
+  resolved "https://registry.npmjs.org/@apps-in-toss/analytics/-/analytics-1.9.2.tgz"
+  integrity sha512-IjLzex7fB+SerkgTWOlKpoAyq5p8fHZ0GX7rgy1RkcoaN/38Pgu2a5VJNNlJ+RztkiZW+SFAVinZPXj6h/Vmew==
 
-"@apps-in-toss/cli@1.8.0":
-  version "1.8.0"
-  resolved "https://registry.npmjs.org/@apps-in-toss/cli/-/cli-1.8.0.tgz"
-  integrity sha512-ZwIUS4Ukv3G1ViMwrqpj08UoWEYJDZG8bPpGj8xTiDFNIRQBzvE73BmR5zh8HgOqPbJDKNwDOTIYN65KFR+Ffw==
+"@apps-in-toss/cli@1.9.2":
+  version "1.9.2"
+  resolved "https://registry.npmjs.org/@apps-in-toss/cli/-/cli-1.9.2.tgz"
+  integrity sha512-aVOAv6zuHrJ+MRzzdL/Y2b5PcGED9XRkCZnmbde4G22lT104fcLSsbwDaqEPt1ztDb8fcWIgGIDReBcOobyxAQ==
   dependencies:
     "@clack/prompts" "^0.10.0"
     "@granite-js/utils" "0.1.31"
@@ -22,30 +22,30 @@
     source-map "^0.8.0-beta.0"
     unzipper "^0.12.3"
 
-"@apps-in-toss/framework@^1.8.0":
-  version "1.8.0"
-  resolved "https://registry.npmjs.org/@apps-in-toss/framework/-/framework-1.8.0.tgz"
-  integrity sha512-WH4URY+51PcOz7TiGE8BykEg+QZspKDjppUM2NuTovXJRMdZmCd4TNZ5zAMqr5+74C+w9ZolNJpi9s3ToN4wjw==
+"@apps-in-toss/framework@^1.9.2":
+  version "1.9.2"
+  resolved "https://registry.npmjs.org/@apps-in-toss/framework/-/framework-1.9.2.tgz"
+  integrity sha512-lkyvT8hUZIvj7E+gn7FV8sC22tP9ptaOwLC7Je/WVfuWBkWpGVCm+CaKVcUYYhdwjHeUSGiexmSnPPVoHudZEw==
   dependencies:
-    "@apps-in-toss/analytics" "1.8.0"
-    "@apps-in-toss/cli" "1.8.0"
-    "@apps-in-toss/native-modules" "1.8.0"
-    "@apps-in-toss/plugins" "1.8.0"
-    "@apps-in-toss/types" "1.8.0"
+    "@apps-in-toss/analytics" "1.9.2"
+    "@apps-in-toss/cli" "1.9.2"
+    "@apps-in-toss/native-modules" "1.9.2"
+    "@apps-in-toss/plugins" "1.9.2"
+    "@apps-in-toss/types" "1.9.2"
     es-hangul "^2.3.2"
 
-"@apps-in-toss/native-modules@1.8.0":
-  version "1.8.0"
-  resolved "https://registry.npmjs.org/@apps-in-toss/native-modules/-/native-modules-1.8.0.tgz"
-  integrity sha512-9dgTuSF4yIW8bX4q37FAzp1Ia/8QYC75bf6YqZhoo5gkyS6vu/SbbpXF2pcpi5ig34dXXgARwo78ykDYUv+EaQ==
+"@apps-in-toss/native-modules@1.9.2":
+  version "1.9.2"
+  resolved "https://registry.npmjs.org/@apps-in-toss/native-modules/-/native-modules-1.9.2.tgz"
+  integrity sha512-z46KskxU/okeQUiomzyP14T+1knWng5g0xvX4/PQv/jNXAIzS7UAZSW3Yw2B+hf9nsCuIUOyofA2oJgmsrUZeQ==
   dependencies:
-    "@apps-in-toss/types" "^1.8.0"
+    "@apps-in-toss/types" "^1.9.2"
     es-toolkit "^1.39.3"
 
-"@apps-in-toss/plugins@1.8.0":
-  version "1.8.0"
-  resolved "https://registry.npmjs.org/@apps-in-toss/plugins/-/plugins-1.8.0.tgz"
-  integrity sha512-M27jKjFFTHor/d8qNTYxfdQApniyDIQ/OtZp+CF6Iombz5YRB1oGNaZ0rtEaOyc6DO/cptt2dhpi3xDJpUoPqA==
+"@apps-in-toss/plugins@1.9.2":
+  version "1.9.2"
+  resolved "https://registry.npmjs.org/@apps-in-toss/plugins/-/plugins-1.9.2.tgz"
+  integrity sha512-4TRro/5q9qG/XwJ7CwUMv+d7VZmi2meSP3JMah+w5840E8Xp0hfL0NQZMWYvopHru/yGtySgjmSJ884vnS69LQ==
   dependencies:
     "@granite-js/plugin-core" "0.1.31"
     "@granite-js/plugin-micro-frontend" "0.1.31"
@@ -58,10 +58,10 @@
     picocolors "^1.1.1"
     uuidv7 "^1.0.2"
 
-"@apps-in-toss/types@^1.8.0", "@apps-in-toss/types@1.8.0":
-  version "1.8.0"
-  resolved "https://registry.npmjs.org/@apps-in-toss/types/-/types-1.8.0.tgz"
-  integrity sha512-E3QPdTRgA0FOwuiQ2qMW3/NxRrSz2mQ0gLDkyc1+S/i6/kzvVaTfmLxxsg/vsYsXLhBCTtOrBrUbEWXYH/iJMQ==
+"@apps-in-toss/types@^1.9.2", "@apps-in-toss/types@1.9.2":
+  version "1.9.2"
+  resolved "https://registry.npmjs.org/@apps-in-toss/types/-/types-1.9.2.tgz"
+  integrity sha512-RbCzLJkiP7ACrgV+8JUCg4+yPGbfiPeAM3buWSZn5J3mhmPJ6vTjyNFE7IwYmD4mRN53d94VJQkOF8/huCkcfg==
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.12.13", "@babel/code-frame@^7.27.1", "@babel/code-frame@^7.28.6":
   version "7.28.6"
