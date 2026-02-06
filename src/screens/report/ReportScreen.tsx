@@ -7,7 +7,7 @@ import ReportLocationSection from './widgets/ReportLocationSection';
 import { ReportFormData } from './types';
 import ReportFormSection, { ReportInfoModalType } from './widgets/ReportFormSection';
 import { reportZone } from "@/shared/api/report_zone";
-import { BottomInfo, FixedBottomCTA, FixedBottomCTAProvider, Post, AlertDialog, Button as TdsButton } from '@toss/tds-react-native';
+import { BottomInfo, FixedBottomCTA, FixedBottomCTAProvider, Post, AlertDialog } from '@toss/tds-react-native';
 import ReportCategorySection from './widgets/ReportCategorySection';
 import ReportFeatureSection from './widgets/ReportFeatureSection';
 import ReportImageSection from './widgets/ReportImageSection';
