@@ -153,7 +153,7 @@ export default function ReportScreen() {
             }, imageFiles);
 
             if (result.success && result.zoneId) {
-                navigation.navigate('/success', { zoneId: result.zoneId });
+                navigation.replace('/success', { zoneId: result.zoneId });
             } else {
                 showAlert('제보 실패', result.error || '알 수 없는 오류가 발생했습니다.');
             }

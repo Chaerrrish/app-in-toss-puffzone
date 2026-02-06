@@ -80,8 +80,9 @@ export default function SuccessScreen() {
     const adaptive = useAdaptive();
     const params = Route.useParams();
     const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
-    const [isToastOpen, setIsToastOpen] = useState(false);
+    // isToastOpen removed
     const [isPromotionSuccess, setIsPromotionSuccess] = useState(false);
+    const [isPromotionFailure, setIsPromotionFailure] = useState(false);
     const [isRewarding, setIsRewarding] = useState(false);
 
     // Exit Dialog State
@@ -101,15 +102,11 @@ export default function SuccessScreen() {
 
             if (result.success || result.alreadyRewarded) {
                 console.log('프로모션 지급 성공', result);
-                setIsToastOpen(true);
                 setIsBottomSheetOpen(true);
                 setIsPromotionSuccess(true);
             } else {
                 console.error('프로모션 지급 실패', result.error);
-                // Show error toast logic here? Re-using the same toast state might be confusing if text is fixed.
-                // Or simply alert for now since Toast component below has fixed text.
-                // Let's change the Toast text dynamically or add another failure state.
-                // For simplicity, let's toggle a failure flag to show a different message in the Toast.
+                setIsPromotionFailure(true);
             }
         } catch (e) {
             console.error('Reward error:', e);
@@ -117,9 +114,6 @@ export default function SuccessScreen() {
             setIsRewarding(false);
         }
     };
-
-    // ... (rest of code)
-
 
 
     const handleConfirmExit = () => {
@@ -225,12 +219,13 @@ export default function SuccessScreen() {
                     }
                 />
             </BottomSheet.Root>
+
             <Toast
-                open={isToastOpen}
-                text="포인트가 지급되었어요"
+                open={isPromotionFailure}
+                text="포인트가 지급되지 않았어요"
                 position="top"
-                icon={<Toast.LottieIcon preset type="complete" />}
-                onClose={() => setIsToastOpen(false)}
+                icon={<Toast.LottieIcon preset type="error" />}
+                onClose={() => setIsPromotionFailure(false)}
             />
             <ConfirmDialog
                 open={isExitDialogOpen}
