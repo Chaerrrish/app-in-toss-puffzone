@@ -1,4 +1,4 @@
-import { NotFoundScreen } from '@/screens';
+import { NotFoundScreen } from '@/screens/not-found';
 
 export default function Page() {
   return <NotFoundScreen />;
