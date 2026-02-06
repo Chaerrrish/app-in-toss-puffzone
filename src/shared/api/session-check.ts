@@ -1,25 +1,27 @@
-import { apiFetch } from './client';
+import { getSessionToken } from '../utils/storage';
 
 export const validateSession = async (): Promise<boolean> => {
     try {
-        // Use a lightweight endpoint to check session validity
-        // Assuming /api/auth/session/check is available, or use any protected endpoint
-        // Since we don't have a dedicated check endpoint, we can use a trivial one or just assume client-side check is mostly about existence
-        // But for "true" validation we need a server call.
-        // Let's use a dummy call or if we had a /me endpoint.
+        const token = await getSessionToken();
+        if (!token) return false;
 
-        // For now, let's assume if we can make a call to an endpoint that requires auth, it's valid.
-        // If it returns 401, apiFetch will throw and we catch it.
-        // However, we don't have a simple GET /me yet.
-        // Let's create a verify endpoint on the server or use an existing one.
-        // Actually, the user asked to clearer logic in HomeScreen. 
-        // We will implement a verifySession function that calls a new simple endpoint.
+        const url = `${import.meta.env.BASE_URL}/api/auth/session/verify`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
 
-        // Let's assume we will create /api/auth/session/verify
-        await apiFetch('/api/auth/session/verify', { method: 'POST' });
-        return true;
+        if (response.ok) {
+            const data = await response.json();
+            return data.success === true && data.valid === true;
+        }
+
+        return false;
     } catch (error) {
-        console.error(error);
+        console.error('Session validation error:', error);
         return false;
     }
 };

@@ -9,7 +9,7 @@ import { Spacing, useNavigation } from '@granite-js/react-native';
 import { useAdaptive } from '@toss/tds-react-native/private';
 import { appLogin } from '@apps-in-toss/framework';
 import { loginWithToss } from '@/shared/api/auth';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import MapIcon from '@/shared/assets/MapIcon';
 import { saveSessionToken, getSessionToken, clearSessionToken } from '@/shared/utils/storage';
 import { validateSession } from '@/shared/api/session-check';
@@ -19,41 +19,32 @@ export default function HomeScreen() {
   const adaptive = useAdaptive();
   const navigation = useNavigation();
 
-  const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isLoginFailed, setIsLoginFailed] = useState(false);
 
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const token = await getSessionToken();
-        if (token) {
-          const isValid = await validateSession();
-          if (isValid) {
-            console.log('Session valid, auto-logging in...');
-            navigation.navigate('/location');
-            return; // Prevent setting isCheckingSession false if navigating away
-          } else {
-            console.log('Session invalid, clearing...');
-            await clearSessionToken();
-          }
-        }
-      } catch (e) {
-        Sentry.captureException(e);
-      } finally {
-        setIsCheckingSession(false);
-      }
-    };
-    checkSession();
-  }, []);
-
   const handleLogin = async () => {
-    if (isLoggingIn || isCheckingSession) return;
+    if (isLoggingIn) return;
     setIsLoggingIn(true);
-    // ... rest of logic
     setIsLoginFailed(false);
 
     try {
+      // 1. Check existing session first
+      const storedToken = await getSessionToken();
+      if (storedToken) {
+        console.log('Checking existing session...');
+        const isValid = await validateSession();
+        if (isValid) {
+          console.log('Session valid, navigating to location...');
+          navigation.navigate('/location');
+          setIsLoggingIn(false);
+          return;
+        } else {
+          console.log('Session invalid, clearing and proceeding to login...');
+          await clearSessionToken();
+        }
+      }
+
+      // 2. Perform Toss Login
       const { authorizationCode } = await appLogin();
 
       const result = await loginWithToss(authorizationCode);
@@ -75,12 +66,6 @@ export default function HomeScreen() {
       setIsLoggingIn(false);
     }
   };
-
-  // ...
-
-  <FixedBottomCTA loading={isLoggingIn || isCheckingSession} onPress={handleLogin}>시작하기</FixedBottomCTA>
-
-
 
   return (
     <>
@@ -125,7 +110,6 @@ export default function HomeScreen() {
 
 
         <FixedBottomCTA loading={isLoggingIn} onPress={handleLogin}>시작하기</FixedBottomCTA>
-        {/* <FixedBottomCTA loading={false} onPress={() => navigation.navigate('/success')}>시작하기</FixedBottomCTA> */}
       </FixedBottomCTAProvider>
       <Toast
         open={isLoginFailed}

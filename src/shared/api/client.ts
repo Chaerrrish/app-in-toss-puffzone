@@ -39,7 +39,7 @@ export const apiFetch = async <T>(
         headers,
     });
 
-    if (response.status === 401 || response.status === 403) {
+    if ((response.status === 401 || response.status === 403) && !init?.skipAuth) {
         await clearSessionToken();
         // Trigger global session expired event
         authEvents.emit('sessionExpired');
