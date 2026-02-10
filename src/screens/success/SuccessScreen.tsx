@@ -4,10 +4,10 @@ import { Asset, Badge, BottomSheet, Button, ConfirmDialog, FixedBottomCTA, Fixed
 import { useAdaptive } from "@toss/tds-react-native/private";
 import { useEffect, useState } from "react";
 import { GoogleAdMob, closeView } from "@apps-in-toss/framework";
-import { claimZoneReward } from '@/shared/api/reward';
+import { claimZoneReward, unlockAd } from '@/shared/api/reward';
 import { z } from 'zod';
 
-const AD_GROUP_ID = 'ait-ad-test-rewarded-id';
+const AD_GROUP_ID = 'ait.v2.live.b3e078a776ce4fc5';
 
 function useGoogleAdMob() {
     // Load ad on mount
@@ -85,6 +85,8 @@ export default function SuccessScreen() {
     const [isPromotionFailure, setIsPromotionFailure] = useState(false);
     const [isRewarding, setIsRewarding] = useState(false);
 
+    const [isLimitReachedBottomSheetOpen, setIsLimitReachedBottomSheetOpen] = useState(false);
+
     // Exit Dialog State
     const [isExitDialogOpen, setIsExitDialogOpen] = useState(false);
 
@@ -100,6 +102,22 @@ export default function SuccessScreen() {
         try {
             const result = await claimZoneReward(params.zoneId);
 
+            if (result.status === 'NEED_AD') {
+                console.log('광고 시청 필요');
+                setIsBottomSheetOpen(true);
+                // We don't set Success/Failure here, just prompt Ad
+                // Showing a toast manually if possible or using the failure state with custom text?
+                // The existing toast is for failure.
+                // Let's assume the user understands they need to watch ad since bottom sheet opens.
+                return;
+            }
+
+            if (result.status === 'LIMIT_EXCEEDED') {
+                console.log('일일 한도 초과');
+                setIsLimitReachedBottomSheetOpen(true);
+                return;
+            }
+
             if (result.success || result.alreadyRewarded) {
                 console.log('프로모션 지급 성공', result);
                 setIsBottomSheetOpen(true);
@@ -110,6 +128,7 @@ export default function SuccessScreen() {
             }
         } catch (e) {
             console.error('Reward error:', e);
+            setIsPromotionFailure(true);
         } finally {
             setIsRewarding(false);
         }
@@ -122,13 +141,11 @@ export default function SuccessScreen() {
     };
 
     const handleAdReward = () => {
-        showAd(() => {
+        showAd(async () => {
+            // Unlock Ad status on server
+            await unlockAd();
+
             // Navigate to report screen for additional report
-            // Assuming '/report' is the route path and existing params are not needed for a fresh report
-            // However, report screen might expect current location. 
-            // For now, let's navigate to report and let it handle location or navigate to home.
-            // Given the context "하나 더 제보할 수 있어요", navigation to home or map might be safer if params are strictly required.
-            // Let's assume we go to home where they can start over.
             navigation.navigate('/location');
         });
     };
@@ -183,6 +200,7 @@ export default function SuccessScreen() {
                     }
                 />
             </FixedBottomCTAProvider>
+            {/* Ad Reward BottomSheet */}
             <BottomSheet.Root open={isBottomSheetOpen} onClose={() => { setIsBottomSheetOpen(false) }}>
                 <Spacing size={16} />
                 <BottomSheet.Header>{`광고 시청 후 \n흡연구역을 하나 더 제보할 수 있어요`}</BottomSheet.Header>
@@ -218,6 +236,26 @@ export default function SuccessScreen() {
                         </Button>
                     }
                 />
+            </BottomSheet.Root>
+
+            {/* Limit Reached BottomSheet */}
+            <BottomSheet.Root open={isLimitReachedBottomSheetOpen} onClose={() => { setIsLimitReachedBottomSheetOpen(false) }}>
+                <Spacing size={16} />
+                <BottomSheet.Header>{`오늘 받을 수 있는 \n포인트를 모두 받았어요`}</BottomSheet.Header>
+                <BottomSheet.HeaderDescription>{`내일 또 포인트를 받을 수 있어요.\n흡연구역 제보하고 매일 최대 100p 받아가세요.`}</BottomSheet.HeaderDescription>
+                <View style={{ alignItems: 'center', paddingTop: 24 }}>
+                    <Asset.Icon
+                        frameShape={{ width: 96, height: 96 }}
+                        name="icon-money-bag-warning-orange"
+                    />
+                </View>
+                <BottomSheet.CTA
+                    type="primary"
+                    style="fill"
+                    onPress={() => { setIsLimitReachedBottomSheetOpen(false) }}
+                >
+                    확인
+                </BottomSheet.CTA>
             </BottomSheet.Root>
 
             <Toast

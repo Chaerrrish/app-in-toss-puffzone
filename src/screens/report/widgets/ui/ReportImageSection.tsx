@@ -30,7 +30,7 @@ export default function ReportImageSection({ formData, updateForm, latitude, lon
         <View style={styles.container}>
             <View>
                 <Text style={styles.sectionTitle}>사진 등록</Text>
-                <Text style={styles.descriptionText}>한 장 이상의 사진 업로드는 필수예요.</Text>
+                <Text style={styles.descriptionText}>한 장 이상의 사진 업로드는 필수예요</Text>
             </View>
             <ScrollView
                 horizontal

@@ -166,9 +166,12 @@ const HTML_SOURCE = `
             center: new naver.maps.LatLng(lat, lng),
             zoom: zoom,
             scaleControl: false,
-            logoControl: false,
+            logoControl: true,
+            logoControlOptions: {
+              position: naver.maps.Position.BOTTOM_LEFT
+            },
             mapDataControl: false,
-            zoomControl: true,
+            zoomControl: false,
             mapTypeControl: false,
             maxZoom: 21,
             minZoom: 10,

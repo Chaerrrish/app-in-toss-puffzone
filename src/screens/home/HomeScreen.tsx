@@ -104,7 +104,7 @@ export default function HomeScreen() {
         />
         <StepperRow
           left={<StepperRow.NumberIcon number={3} />}
-          center={<StepperRow.Texts type="B" title="토스 포인트를 받아가세요" description="제보만 하면 그 즉시 보상 받을 수 있어요" />}
+          center={<StepperRow.Texts type="B" title="토스 포인트를 받아가세요" description="제보하면 그 즉시 보상 받을 수 있어요" />}
           hideLine
         />
 
