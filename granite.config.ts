@@ -26,7 +26,7 @@ export default defineConfig({
     env({
       NAVER_MAP_APPLICATION: 'puffzone',
       NAVER_MAP_CLIENT_ID: '51wm2hbym8',
-      BASE_URL: 'https://frost-retreat-serves-ratings.trycloudflare.com',
+      BASE_URL: 'https://www.puffzone.co.kr',
     }),
   ],
 });
