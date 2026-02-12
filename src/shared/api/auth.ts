@@ -7,13 +7,14 @@ interface LoginWithTossResponse {
         // Add other fields from Toss response if needed
         [key: string]: string | number | boolean | null | undefined | object;
     };
+    error?: string;
 }
 
-export const loginWithToss = async (code: string): Promise<LoginWithTossResponse | null> => {
+export const loginWithToss = async (code: string, referrer?: string): Promise<LoginWithTossResponse | null> => {
     try {
         const data = await apiFetch<LoginWithTossResponse>('/api/auth/toss/start', {
             method: 'POST',
-            body: JSON.stringify({ code }),
+            body: JSON.stringify({ code, referrer }),
             skipAuth: true,
         });
         return data;

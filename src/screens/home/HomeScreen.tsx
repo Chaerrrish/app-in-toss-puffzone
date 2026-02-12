@@ -9,7 +9,7 @@ import { Spacing, useNavigation } from '@granite-js/react-native';
 import { useAdaptive } from '@toss/tds-react-native/private';
 import { appLogin } from '@apps-in-toss/framework';
 import { loginWithToss } from '@/shared/api/auth';
-import { useState, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import MapIcon from '@/shared/assets/MapIcon';
 import { saveSessionToken, getSessionToken, clearSessionToken } from '@/shared/utils/storage';
 import { validateSession } from '@/shared/api/session-check';
@@ -19,52 +19,50 @@ export default function HomeScreen() {
   const adaptive = useAdaptive();
   const navigation = useNavigation();
 
-  const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isLoginFailed, setIsLoginFailed] = useState(false);
-
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const token = await getSessionToken();
-        if (token) {
-          const isValid = await validateSession();
-          if (isValid) {
-            console.log('Session valid, auto-logging in...');
-            navigation.navigate('/location');
-            return; // Prevent setting isCheckingSession false if navigating away
-          } else {
-            console.log('Session invalid, clearing...');
-            await clearSessionToken();
-          }
-        }
-      } catch (e) {
-        Sentry.captureException(e);
-      } finally {
-        setIsCheckingSession(false);
-      }
-    };
-    checkSession();
-  }, []);
+  const isRequestingRef = useRef(false);
 
   const handleLogin = async () => {
-    if (isLoggingIn || isCheckingSession) return;
+    if (isRequestingRef.current) return;
+    isRequestingRef.current = true;
     setIsLoggingIn(true);
-    // ... rest of logic
     setIsLoginFailed(false);
 
     try {
-      const { authorizationCode } = await appLogin();
+      // 1. Check existing session first
+      const storedToken = await getSessionToken();
+      if (storedToken) {
+        console.log('Checking existing session...');
+        const isValid = await validateSession();
+        if (isValid) {
+          console.log('Session valid, navigating to location...');
+          navigation.navigate('/location');
+          setIsLoggingIn(false);
+          isRequestingRef.current = false; // Reset lock on success return
+          return;
+        } else {
+          console.warn('Session invalid, clearing and proceeding to login...');
+          await clearSessionToken();
+          // Token is cleared, code will proceed to step 2 to get new auth code
+        }
+      }
 
-      const result = await loginWithToss(authorizationCode);
+      // 2. Perform Toss Login
+      const loginResult = await appLogin();
+
+      const { authorizationCode, referrer } = loginResult;
+
+      const result = await loginWithToss(authorizationCode, referrer);
 
       if (result && result.success && typeof result.result?.sessionToken === 'string') {
         const token = result.result.sessionToken;
         await saveSessionToken(token);
         navigation.navigate('/location');
       } else {
-        Sentry.captureMessage('Login failed or no session token', 'error');
-        console.error('Login failed or no session token');
+        const errorMsg = result?.error || 'Unknown error';
+        Sentry.captureMessage(`Login failed: ${errorMsg}`, 'error');
+        console.error('Login failed:', errorMsg);
         setIsLoginFailed(true);
       }
     } catch (error) {
@@ -73,19 +71,13 @@ export default function HomeScreen() {
       setIsLoginFailed(true);
     } finally {
       setIsLoggingIn(false);
+      isRequestingRef.current = false; // Unlock
     }
   };
-
-  // ...
-
-  <FixedBottomCTA loading={isLoggingIn || isCheckingSession} onPress={handleLogin}>시작하기</FixedBottomCTA>
-
-
 
   return (
     <>
       <FixedBottomCTAProvider>
-
         <Spacing size={12} />
         <Top
           title={
@@ -106,9 +98,7 @@ export default function HomeScreen() {
             />
           }
         />
-
         <Spacing size={160} />
-
         <StepperRow
           left={<StepperRow.NumberIcon number={1} />}
           center={<StepperRow.Texts type="B" title="지도에서 위치를 선택해요" description="제보할 장소를 콕 찍어주세요" />}
@@ -119,13 +109,10 @@ export default function HomeScreen() {
         />
         <StepperRow
           left={<StepperRow.NumberIcon number={3} />}
-          center={<StepperRow.Texts type="B" title="토스 포인트를 받아가세요" description="제보만 하면 그 즉시 보상 받을 수 있어요" />}
+          center={<StepperRow.Texts type="B" title="토스 포인트를 받아가세요" description="제보하면 그 즉시 보상 받을 수 있어요" />}
           hideLine
         />
-
-
         <FixedBottomCTA loading={isLoggingIn} onPress={handleLogin}>시작하기</FixedBottomCTA>
-        {/* <FixedBottomCTA loading={false} onPress={() => navigation.navigate('/success')}>시작하기</FixedBottomCTA> */}
       </FixedBottomCTAProvider>
       <Toast
         open={isLoginFailed}

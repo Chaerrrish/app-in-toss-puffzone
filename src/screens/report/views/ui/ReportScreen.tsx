@@ -3,14 +3,10 @@ import { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Spacing, useNavigation, createRoute } from '@granite-js/react-native';
 import { z as zod } from 'zod';
-import ReportLocationSection from './widgets/ReportLocationSection';
-import { ReportFormData } from './types';
-import ReportFormSection, { ReportInfoModalType } from './widgets/ReportFormSection';
+import { ReportFormData, ReportInfoModalType } from '@/screens/report';
 import { reportZone } from "@/shared/api/report_zone";
-import { BottomInfo, FixedBottomCTA, FixedBottomCTAProvider, Post, AlertDialog } from '@toss/tds-react-native';
-import ReportCategorySection from './widgets/ReportCategorySection';
-import ReportFeatureSection from './widgets/ReportFeatureSection';
-import ReportImageSection from './widgets/ReportImageSection';
+import { BottomInfo, FixedBottomCTA, FixedBottomCTAProvider, Post, AlertDialog, Toast } from '@toss/tds-react-native';
+import { ReportCategorySection, ReportFeatureSection, ReportFormSection, ReportImageSection, ReportLocationSection } from '@/screens/report/widgets';
 
 export interface ReportScreenParams {
     latitude: number;
@@ -33,6 +29,7 @@ export default function ReportScreen() {
     });
     const [infoModal, setInfoModal] = useState<ReportInfoModalType>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSubmittingFailed, setIsSubmittingFailed] = useState(false);
 
     // Alert State
     const [alertConfig, setAlertConfig] = useState<{
@@ -78,50 +75,6 @@ export default function ReportScreen() {
         setFormData((prev) => ({ ...prev, ...data }));
     };
 
-    // const handleSubmit = async () => {
-    //     if (formData.photos.length === 0) {
-    //         showAlert('알림', '최소 1장의 사진을 등록해주세요.');
-    //         return;
-    //     }
-
-    //     if (!formData.name) {
-    //         showAlert('알림', '장소명을 입력해주세요.');
-    //         return;
-    //     }
-
-    //     setIsSubmitting(true);
-    //     try {
-    //         const imageFiles = formData.photos.map(uri => ({
-    //             uri,
-    //             type: 'image/jpeg', // Default or infer
-    //             name: uri.split('/').pop() || 'upload.jpg',
-    //         }));
-
-    //         const result = await reportZone({
-    //             name: formData.name,
-    //             lat: Number(params.latitude),
-    //             lng: Number(params.longitude),
-    //             kind: 'SMOKING', // Default for now
-    //             address: params.address,
-    //             description: formData.description,
-    //             category: formData.category,
-    //             features: formData.features,
-    //             // userId: User ID from auth context?
-    //         }, imageFiles);
-
-    //         if (result.success) {
-    //             navigation.navigate('/success');
-    //         } else {
-    //             showAlert('제보 실패', result.error || '알 수 없는 오류가 발생했습니다.');
-    //         }
-    //     } catch (e: unknown) {
-    //         const errorMessage = e instanceof Error ? e.message : '알 수 없는 오류가 발생했습니다.';
-    //         showAlert('오류', errorMessage);
-    //     } finally {
-    //         setIsSubmitting(false);
-    //     }
-    // };
-
     const handleSubmit = async () => {
         if (formData.photos.length === 0) {
             showAlert('알림', '최소 1장의 사진을 등록해주세요.');
@@ -153,13 +106,13 @@ export default function ReportScreen() {
             }, imageFiles);
 
             if (result.success && result.zoneId) {
-                navigation.navigate('/success', { zoneId: result.zoneId });
+                navigation.replace('/success', { zoneId: result.zoneId });
             } else {
-                showAlert('제보 실패', result.error || '알 수 없는 오류가 발생했습니다.');
+                setIsSubmittingFailed(true);
             }
         } catch (e: unknown) {
-            const errorMessage = e instanceof Error ? e.message : '알 수 없는 오류가 발생했습니다.';
-            showAlert('오류', errorMessage);
+            setIsSubmittingFailed(true);
+            console.error('Report failed:', e);
         } finally {
             setIsSubmitting(false);
         }
@@ -209,7 +162,7 @@ export default function ReportScreen() {
                             <Post.Paragraph typography="t6">포인트 적립은 하루 5번(최대 100p)까지 가능합니다.</Post.Paragraph>
                         </Post.Li>
                         <Post.Li>
-                            <Post.Paragraph typography="t6">{`지급된 포인트는 [혜택 -> 내 포인트] 에서 확인하실 수 있습니다.`}</Post.Paragraph>
+                            <Post.Paragraph typography="t6">{`지급된 포인트는 [혜택] > [내 포인트]에서 확인하실 수 있습니다.`}</Post.Paragraph>
                         </Post.Li>
                         <Post.Li>
                             <Post.Paragraph typography="t6">
@@ -225,16 +178,14 @@ export default function ReportScreen() {
                 >
                     제보하기
                 </FixedBottomCTA>
-                {/* <FixedBottomCTA
-                    // loading={isSubmitting}
-                    onPress={() => {
-                        navigation.navigate('/success');
-                    }}
-                    disabled={false}
-                >
-                    제보하기
-                </FixedBottomCTA> */}
             </FixedBottomCTAProvider>
+            <Toast
+                open={isSubmittingFailed}
+                text="제보에 실패했어요"
+                position="top"
+                icon={<Toast.LottieIcon preset type="error" />}
+                onClose={() => setIsSubmittingFailed(false)}
+            />
 
             <AlertDialog
                 open={alertConfig.open}

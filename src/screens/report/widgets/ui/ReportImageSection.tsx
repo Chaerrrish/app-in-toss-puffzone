@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, StyleSheet, Pressable, Image } from 'react-native';
 import { theme } from '@/shared/styles/theme';
-import { ReportFormData } from '../types';
+import { ReportFormData } from '@/screens/report/types';
 import { Asset } from '@toss/tds-react-native';
 import { useNavigation } from '@granite-js/react-native';
 
@@ -28,7 +28,10 @@ export default function ReportImageSection({ formData, updateForm, latitude, lon
 
     return (
         <View style={styles.container}>
-            <Text style={styles.sectionTitle}>사진 등록</Text>
+            <View>
+                <Text style={styles.sectionTitle}>사진 등록</Text>
+                <Text style={styles.descriptionText}>한 장 이상의 사진 업로드는 필수예요</Text>
+            </View>
             <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -92,12 +95,20 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         gap: 4,
     },
+    descriptionText: {
+        ...theme.text.m.r,
+        color: theme.colors.gray[60],
+    },
     countContainer: { flexDirection: 'row' },
     countText: { ...theme.text.m.m, color: theme.colors.primary[50] },
     countTotal: { ...theme.text.m.r, color: theme.colors.gray[60] },
     textActive: { color: theme.colors.brand.primary },
     textFull: { ...theme.text.m.m, color: theme.colors.gray[80] },
     textEmpty: { color: theme.colors.gray[60] },
+    requireLabel: {
+        ...theme.text.l.b,
+        color: theme.colors.primary[40],
+    },
 
     imageWrapper: {
         width: 96, height: 96,

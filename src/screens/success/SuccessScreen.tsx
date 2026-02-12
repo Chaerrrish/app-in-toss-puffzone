@@ -4,25 +4,23 @@ import { Asset, Badge, BottomSheet, Button, ConfirmDialog, FixedBottomCTA, Fixed
 import { useAdaptive } from "@toss/tds-react-native/private";
 import { useEffect, useState } from "react";
 import { GoogleAdMob, closeView } from "@apps-in-toss/framework";
-import { claimZoneReward } from '@/shared/api/reward';
+import { claimZoneReward, unlockAd } from '@/shared/api/reward';
 import { z } from 'zod';
 
-const AD_GROUP_ID = 'ait-ad-test-rewarded-id';
+const AD_GROUP_ID = 'ait.v2.live.b3e078a776ce4fc5';
 
 function useGoogleAdMob() {
-    // Load ad on mount
-    useEffect(() => {
-        console.log('useGoogleAdMob: useEffect started');
+    const [isAdLoaded, setIsAdLoaded] = useState(false);
+
+    const loadAd = () => {
+        console.log('useGoogleAdMob: Starting loadAppsInTossAdMob');
         if (GoogleAdMob.loadAppsInTossAdMob.isSupported() !== true) {
             console.log('useGoogleAdMob: loadAppsInTossAdMob is not supported');
             return;
         }
-        console.log('useGoogleAdMob: Starting loadAppsInTossAdMob');
-
-        let cleanup: (() => void) | undefined;
 
         try {
-            cleanup = GoogleAdMob.loadAppsInTossAdMob({
+            GoogleAdMob.loadAppsInTossAdMob({
                 options: {
                     adGroupId: AD_GROUP_ID,
                 },
@@ -30,20 +28,23 @@ function useGoogleAdMob() {
                     switch (event.type) {
                         case 'loaded':
                             console.log('광고 로드 성공', event.data);
+                            setIsAdLoaded(true);
                             break;
                     }
                 },
                 onError: (error) => {
-                    console.error('광고 불러오기 실패', error);
+                    console.error('광고 불러오기 에러', error);
+                    setIsAdLoaded(false);
                 },
             });
         } catch (e) {
             console.error('loadAppsInTossAdMob execution failed', e);
         }
+    };
 
-        return () => {
-            cleanup?.();
-        };
+    // Load ad on mount
+    useEffect(() => {
+        loadAd();
     }, []);
 
     const showAd = (onSuccess: () => void) => {
@@ -51,6 +52,13 @@ function useGoogleAdMob() {
             console.log('useGoogleAdMob: showAppsInTossAdMob is not supported');
             // Fallback for dev/unsupported env -> treat as success
             onSuccess();
+            return;
+        }
+
+        if (!isAdLoaded) {
+            console.warn('광고가 아직 로드되지 않았습니다. 다시 로드합니다.');
+            loadAd();
+            // Optional: Show toast "광고를 불러오는 중입니다"
             return;
         }
 
@@ -63,15 +71,22 @@ function useGoogleAdMob() {
                     console.log('광고 시청 보상이 지급되었습니다.');
                     onSuccess();
                 }
+                if (event.type === 'dismissed' || event.type === 'failedToShow') {
+                    console.log('광고 닫힘/실패 -> 다음 광고 로드');
+                    setIsAdLoaded(false);
+                    loadAd();
+                }
             },
             onError: (error) => {
                 console.error('광고 표시 중 오류 발생', error);
-                // Optional: decide whether to navigate anyway or show error
+                // Try reloading for next time
+                setIsAdLoaded(false);
+                loadAd();
             },
         });
     };
 
-    return { showAd };
+    return { showAd, isAdLoaded };
 }
 
 export default function SuccessScreen() {
@@ -80,9 +95,12 @@ export default function SuccessScreen() {
     const adaptive = useAdaptive();
     const params = Route.useParams();
     const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
-    const [isToastOpen, setIsToastOpen] = useState(false);
+    // isToastOpen removed
     const [isPromotionSuccess, setIsPromotionSuccess] = useState(false);
+    const [isPromotionFailure, setIsPromotionFailure] = useState(false);
     const [isRewarding, setIsRewarding] = useState(false);
+
+    const [isLimitReachedBottomSheetOpen, setIsLimitReachedBottomSheetOpen] = useState(false);
 
     // Exit Dialog State
     const [isExitDialogOpen, setIsExitDialogOpen] = useState(false);
@@ -99,27 +117,54 @@ export default function SuccessScreen() {
         try {
             const result = await claimZoneReward(params.zoneId);
 
+            if (result.status === 'NEED_AD') {
+                console.log('광고 시청 필요: 광고 재생 시작');
+                showAd(async () => {
+                    try {
+                        // 1. Unlock Ad status on server
+                        await unlockAd();
+                        console.log('광고 시청 완료: Ad Unlocked');
+
+                        // 2. Re-claim reward after unlocking
+                        const retryResult = await claimZoneReward(params.zoneId!);
+
+                        if (retryResult.success || retryResult.alreadyRewarded) {
+                            console.log('광고 후 포인트 지급 성공', retryResult);
+                            setIsPromotionSuccess(true);
+                            setIsBottomSheetOpen(true);
+                        } else {
+                            console.error('광고 후 포인트 지급 실패', retryResult);
+                            setIsPromotionFailure(true);
+                        }
+                    } catch (err) {
+                        console.error('Core reward flow failed after ad:', err);
+                        setIsPromotionFailure(true);
+                    }
+                });
+                return;
+            }
+
+            if (result.status === 'LIMIT_EXCEEDED') {
+                console.log('일일 한도 초과');
+                setIsLimitReachedBottomSheetOpen(true);
+                return;
+            }
+
             if (result.success || result.alreadyRewarded) {
                 console.log('프로모션 지급 성공', result);
-                setIsToastOpen(true);
                 setIsBottomSheetOpen(true);
                 setIsPromotionSuccess(true);
             } else {
                 console.error('프로모션 지급 실패', result.error);
-                // Show error toast logic here? Re-using the same toast state might be confusing if text is fixed.
-                // Or simply alert for now since Toast component below has fixed text.
-                // Let's change the Toast text dynamically or add another failure state.
-                // For simplicity, let's toggle a failure flag to show a different message in the Toast.
+                setIsPromotionFailure(true);
             }
         } catch (e) {
             console.error('Reward error:', e);
+            setIsPromotionFailure(true);
         } finally {
             setIsRewarding(false);
         }
     };
-
-    // ... (rest of code)
-
 
 
     const handleConfirmExit = () => {
@@ -128,13 +173,11 @@ export default function SuccessScreen() {
     };
 
     const handleAdReward = () => {
-        showAd(() => {
+        showAd(async () => {
+            // Unlock Ad status on server
+            await unlockAd();
+
             // Navigate to report screen for additional report
-            // Assuming '/report' is the route path and existing params are not needed for a fresh report
-            // However, report screen might expect current location. 
-            // For now, let's navigate to report and let it handle location or navigate to home.
-            // Given the context "하나 더 제보할 수 있어요", navigation to home or map might be safer if params are strictly required.
-            // Let's assume we go to home where they can start over.
             navigation.navigate('/location');
         });
     };
@@ -189,6 +232,7 @@ export default function SuccessScreen() {
                     }
                 />
             </FixedBottomCTAProvider>
+            {/* Ad Reward BottomSheet */}
             <BottomSheet.Root open={isBottomSheetOpen} onClose={() => { setIsBottomSheetOpen(false) }}>
                 <Spacing size={16} />
                 <BottomSheet.Header>{`광고 시청 후 \n흡연구역을 하나 더 제보할 수 있어요`}</BottomSheet.Header>
@@ -225,12 +269,33 @@ export default function SuccessScreen() {
                     }
                 />
             </BottomSheet.Root>
+
+            {/* Limit Reached BottomSheet */}
+            <BottomSheet.Root open={isLimitReachedBottomSheetOpen} onClose={() => { setIsLimitReachedBottomSheetOpen(false) }}>
+                <Spacing size={16} />
+                <BottomSheet.Header>{`오늘 받을 수 있는 \n포인트를 모두 받았어요`}</BottomSheet.Header>
+                <BottomSheet.HeaderDescription>{`내일 또 포인트를 받을 수 있어요.\n흡연구역 제보하고 매일 최대 100p 받아가세요.`}</BottomSheet.HeaderDescription>
+                <View style={{ alignItems: 'center', paddingTop: 24 }}>
+                    <Asset.Icon
+                        frameShape={{ width: 96, height: 96 }}
+                        name="icon-money-bag-warning-orange"
+                    />
+                </View>
+                <BottomSheet.CTA
+                    type="primary"
+                    style="fill"
+                    onPress={() => { setIsLimitReachedBottomSheetOpen(false) }}
+                >
+                    확인
+                </BottomSheet.CTA>
+            </BottomSheet.Root>
+
             <Toast
-                open={isToastOpen}
-                text="포인트가 지급되었어요"
+                open={isPromotionFailure}
+                text="포인트가 지급되지 않았어요"
                 position="top"
-                icon={<Toast.LottieIcon preset type="complete" />}
-                onClose={() => setIsToastOpen(false)}
+                icon={<Toast.LottieIcon preset type="error" />}
+                onClose={() => setIsPromotionFailure(false)}
             />
             <ConfirmDialog
                 open={isExitDialogOpen}

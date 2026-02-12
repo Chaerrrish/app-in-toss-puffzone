@@ -1,7 +1,7 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import RadioButton from '@/shared/components/RadioButton';
 import { theme } from '@/shared/styles/theme';
-import { ReportFormData, ZoneCategory } from '../types';
+import { ReportFormData, ZoneCategory } from '@/screens/report';
 
 interface ReportCategorySectionProps {
     formData: ReportFormData;

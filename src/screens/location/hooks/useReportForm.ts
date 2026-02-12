@@ -5,7 +5,7 @@ export function useReportForm() {
     const [formData, setFormData] = useState({
         latitude: 37.5536,
         longitude: 126.9725,
-        address: 'Seoul (Mock)',
+        address: '주소를 가져오는 중...',
     });
 
     const setLocation = useCallback((data: { latitude: number; longitude: number; address: string }) => {

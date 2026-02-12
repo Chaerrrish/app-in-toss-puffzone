@@ -3,7 +3,7 @@ import React from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { theme } from '@/shared/styles/theme';
 import { Asset, FixedBottomCTA, FixedBottomCTAProvider } from '@toss/tds-react-native';
-import PhotoOptionBottomSheet from './components/PhotoOptionBottomSheet';
+import { PhotoOptionBottomSheet } from '@/screens/report/components';
 import { ReportScreenParams } from './ReportScreen';
 import { fetchAlbumPhotos, openCamera } from '@apps-in-toss/native-modules';
 import { FetchAlbumPhotosPermissionError, OpenCameraPermissionError } from '@apps-in-toss/types';
@@ -43,7 +43,7 @@ const GUIDE_IMAGES = [
 
 export default function UploadGuideScreen() {
     const navigation = useNavigation();
-    const params = UploadGuideRoute.useParams();
+    const params = Route.useParams();
 
     const [isPhotoSheetOpen, setIsPhotoSheetOpen] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(false);
@@ -226,7 +226,7 @@ export default function UploadGuideScreen() {
     );
 }
 
-export const UploadGuideRoute = createRoute('/upload-guide', {
+export const Route = createRoute('/upload-guide', {
     component: UploadGuideScreen,
     validateParams: zod.object({
         latitude: zod.number().optional(),

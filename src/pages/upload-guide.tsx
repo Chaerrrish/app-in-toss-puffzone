@@ -1,5 +1,5 @@
-import UploadGuideScreen from '@/screens/report/UploadGuideScreen';
-export { UploadGuideRoute as Route } from '@/screens/report/route';
+import { UploadGuideScreen } from '@/screens/report';
+export { UploadGuideRoute as Route } from '@/screens/report';
 
 export default function Page() {
     return <UploadGuideScreen />;

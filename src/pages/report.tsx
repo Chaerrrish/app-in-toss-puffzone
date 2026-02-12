@@ -1,5 +1,5 @@
-import ReportScreen from '@/screens/report/ReportScreen';
-export { Route } from '@/screens/report/route';
+import { ReportScreen } from '@/screens/report';
+export { ReportRoute as Route } from '@/screens/report';
 
 export default function Page() {
     return <ReportScreen />;

@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
-import StaticNaverMapView from "@/screens/report/components/StaticNaverMapView";
 import { theme } from "@/shared/styles/theme";
 import { useNavigation } from '@granite-js/react-native';
+import { StaticNaverMapView } from "@/screens/report/components";
 
 type ReportLocationSectionProps = {
     address?: string | null;

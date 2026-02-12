@@ -162,53 +162,57 @@ export default function LocationScreen() {
     }, [getAddressFromCoords, hasSelection, selectedCoords, setLocation]);
 
     return (
-        <View style={[styles.container, { paddingBottom: insets.bottom }]}>
-            <View style={styles.contentContainer}>
-                <View style={styles.mapContainer}>
-                    <NaverMapSelector
-                        camera={camera}
-                        mapRef={naverMapRef}
-                        selectedLocation={selectedCoords}
-                        onCameraChange={handleCameraChange}
-                        onMapTap={handleSelectLocation}
-                    />
+        <>
+            <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+                <View style={styles.contentContainer}>
+                    <View style={styles.mapContainer}>
+                        <NaverMapSelector
+                            camera={camera}
+                            mapRef={naverMapRef}
+                            selectedLocation={selectedCoords}
+                            onCameraChange={handleCameraChange}
+                            onMapTap={handleSelectLocation}
+                        />
 
-                    <View pointerEvents="box-none" style={styles.floatingButtonContainer}>
-                        <MoveToCurrentLocationButton onPress={handleMoveToCurrent} />
-                    </View>
-                </View>
-
-                <View style={styles.infoContainer}>
-                    <View style={styles.titleContainer}>
-                        <Text style={styles.titleText}>흡연구역의 위치를 확인해주세요</Text>
-                        <Text style={styles.subtitleText}>지도를 터치하여 흡연구역의 위치를 표시해주세요</Text>
-                    </View>
-
-                    <View style={styles.detailsContainer}>
-                        <View style={styles.addressBox}>
-                            <Text style={[styles.addressLabel, { color: theme.colors.primary[40] }]}>현 위치</Text>
-                            <Text style={styles.addressText}>{formData.address || '주소를 가져오는 중...'}</Text>
-                        </View>
-
-                        <View style={styles.warningBox}>
-                            <Asset.Icon name="icon-info-circle-mono" color="#FFD057" />
-                            <Text style={styles.warningText}>지도의 표시와 실제 위치가 맞는지 확인해주세요</Text>
+                        <View pointerEvents="box-none" style={styles.floatingButtonContainer}>
+                            <MoveToCurrentLocationButton onPress={handleMoveToCurrent} />
                         </View>
                     </View>
+
                 </View>
+                <FixedBottomCTAProvider>
+                    <View style={styles.infoContainer}>
+                        <View style={styles.titleContainer}>
+                            <Text style={styles.titleText}>흡연구역의 위치를 확인해주세요</Text>
+                            <Text style={styles.subtitleText}>지도를 터치하여 흡연구역의 위치를 표시해주세요</Text>
+                        </View>
+
+                        <View style={styles.detailsContainer}>
+                            <View style={styles.addressBox}>
+                                <Text style={[styles.addressLabel, { color: theme.colors.primary[40] }]}>현 위치</Text>
+                                <Text style={styles.addressText}>{formData.address || '주소를 가져오는 중...'}</Text>
+                            </View>
+
+                            <View style={styles.warningBox}>
+                                <Asset.Icon name="icon-info-circle-mono" color="#FFD057" />
+                                <Text style={styles.warningText}>지도의 표시와 실제 위치가 맞는지 확인해주세요</Text>
+                            </View>
+                        </View>
+                    </View>
+
+
+
+
+                    <FixedBottomCTA disabled={!hasSelection || !formData.address} onPress={() => {
+                        handleConfirm();
+                        navigation.navigate('/report', {
+                            latitude: selectedCoords.latitude,
+                            longitude: selectedCoords.longitude,
+                            address: formData.address || '',
+                        });
+                    }}>해당 위치로 흡연구역을 설정할게요</FixedBottomCTA>
+                </FixedBottomCTAProvider>
             </View>
-
-            <FixedBottomCTAProvider>
-                <FixedBottomCTA disabled={!hasSelection || !formData.address} onPress={() => {
-                    handleConfirm();
-                    navigation.navigate('/report', {
-                        latitude: selectedCoords.latitude,
-                        longitude: selectedCoords.longitude,
-                        address: formData.address || '',
-                    });
-                }}>해당 위치로 흡연구역을 설정할게요</FixedBottomCTA>
-            </FixedBottomCTAProvider>
-
             <AlertDialog
                 open={alertConfig.open}
                 title={alertConfig.title}
@@ -221,7 +225,7 @@ export default function LocationScreen() {
                 onClose={() => setAlertConfig(prev => ({ ...prev, open: false }))}
                 onExited={() => { }}
             />
-        </View>
+        </>
     );
 }
 
@@ -236,7 +240,7 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
     },
     mapContainer: {
-        height: '100%',
+        flex: 1,
         position: 'relative',
     },
     floatingButtonContainer: {
@@ -247,7 +251,8 @@ const styles = StyleSheet.create({
     },
     infoContainer: {
         paddingHorizontal: 16,
-        paddingVertical: 24,
+        paddingBottom: 16,
+        paddingTop: 24,
         backgroundColor: '#fff',
         gap: 24,
     },
@@ -268,7 +273,7 @@ const styles = StyleSheet.create({
     },
     addressBox: {
         padding: 16,
-        backgroundColor: theme.colors.primary[95], // grey100 / primary-95 approx
+        backgroundColor: theme.colors.primary[95],
         borderRadius: 12,
         borderWidth: 1,
         borderColor: theme.colors.primary[80],

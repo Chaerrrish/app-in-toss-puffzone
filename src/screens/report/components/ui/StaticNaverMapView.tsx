@@ -128,11 +128,11 @@ const HTML_SOURCE = `
             position: new naver.maps.LatLng(lat, lng),
             map: window.map,
             icon: {
-              url: 'https://www.puffzone.co.kr/images/markers/green_marker_44.png',
-              size: new naver.maps.Size(44, 44),
-              scaledSize: new naver.maps.Size(44, 44),
+              url: 'https://www.puffzone.co.kr/images/markers/default_marker_40@3x.png',
+              size: new naver.maps.Size(30, 36),
+              scaledSize: new naver.maps.Size(30, 36),
               origin: new naver.maps.Point(0, 0),
-              anchor: new naver.maps.Point(22, 22)
+              anchor: new naver.maps.Point(15, 32)
             }
           });
           window.marker.setMap(window.map);

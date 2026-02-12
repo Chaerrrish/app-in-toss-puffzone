@@ -3,10 +3,7 @@ import { theme } from "@/shared/styles/theme";
 import { HBar } from "@/shared/components/Divider";
 import { BaseTextInput } from "@/shared/components/TextInput";
 import { Asset } from '@toss/tds-react-native'; // Use Toss Asset if available, or fallbacks
-import { ReportFormData } from '../types';
-
-// Types (simplified for now, ideally import from types file)
-export type ReportInfoModalType = 'name' | 'description' | null;
+import { ReportFormData, ReportInfoModalType } from '@/screens/report';
 
 type ReportFormSectionProps = {
     formData: ReportFormData;

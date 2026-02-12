@@ -166,7 +166,10 @@ const HTML_SOURCE = `
             center: new naver.maps.LatLng(lat, lng),
             zoom: zoom,
             scaleControl: false,
-            logoControl: false,
+            logoControl: true,
+            logoControlOptions: {
+              position: naver.maps.Position.BOTTOM_LEFT
+            },
             mapDataControl: false,
             zoomControl: false,
             mapTypeControl: false,
@@ -256,11 +259,11 @@ const HTML_SOURCE = `
               position: pos,
               map: window.map,
               icon: {
-                url: 'https://www.puffzone.co.kr/images/markers/green_marker_44.png',
-                size: new naver.maps.Size(44, 44),
-                scaledSize: new naver.maps.Size(44, 44),
+                url: 'https://www.puffzone.co.kr/images/markers/default_marker_40@3x.png',
+                size: new naver.maps.Size(30, 36),
+                scaledSize: new naver.maps.Size(30, 36),
                 origin: new naver.maps.Point(0, 0),
-                anchor: new naver.maps.Point(22, 22)
+                anchor: new naver.maps.Point(15, 32)
               }
             });
             window.marker.setMap(window.map); 
@@ -268,6 +271,13 @@ const HTML_SOURCE = `
           } else {
             log("Updating existing marker position...");
             window.marker.setPosition(pos);
+            window.marker.setIcon({
+                url: 'https://www.puffzone.co.kr/images/markers/default_marker_40@3x.png',
+                size: new naver.maps.Size(30, 36),
+                scaledSize: new naver.maps.Size(30, 36),
+                origin: new naver.maps.Point(0, 0),
+                anchor: new naver.maps.Point(15, 32)
+            });
             window.marker.setMap(window.map);
             log("Marker position updated.");
           }
