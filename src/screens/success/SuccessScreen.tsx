@@ -10,19 +10,17 @@ import { z } from 'zod';
 const AD_GROUP_ID = 'ait.v2.live.b3e078a776ce4fc5';
 
 function useGoogleAdMob() {
-    // Load ad on mount
-    useEffect(() => {
-        console.log('useGoogleAdMob: useEffect started');
+    const [isAdLoaded, setIsAdLoaded] = useState(false);
+
+    const loadAd = () => {
+        console.log('useGoogleAdMob: Starting loadAppsInTossAdMob');
         if (GoogleAdMob.loadAppsInTossAdMob.isSupported() !== true) {
             console.log('useGoogleAdMob: loadAppsInTossAdMob is not supported');
             return;
         }
-        console.log('useGoogleAdMob: Starting loadAppsInTossAdMob');
-
-        let cleanup: (() => void) | undefined;
 
         try {
-            cleanup = GoogleAdMob.loadAppsInTossAdMob({
+            GoogleAdMob.loadAppsInTossAdMob({
                 options: {
                     adGroupId: AD_GROUP_ID,
                 },
@@ -30,20 +28,23 @@ function useGoogleAdMob() {
                     switch (event.type) {
                         case 'loaded':
                             console.log('광고 로드 성공', event.data);
+                            setIsAdLoaded(true);
                             break;
                     }
                 },
                 onError: (error) => {
-                    console.error('광고 불러오기 실패', error);
+                    console.error('광고 불러오기 에러', error);
+                    setIsAdLoaded(false);
                 },
             });
         } catch (e) {
             console.error('loadAppsInTossAdMob execution failed', e);
         }
+    };
 
-        return () => {
-            cleanup?.();
-        };
+    // Load ad on mount
+    useEffect(() => {
+        loadAd();
     }, []);
 
     const showAd = (onSuccess: () => void) => {
@@ -51,6 +52,13 @@ function useGoogleAdMob() {
             console.log('useGoogleAdMob: showAppsInTossAdMob is not supported');
             // Fallback for dev/unsupported env -> treat as success
             onSuccess();
+            return;
+        }
+
+        if (!isAdLoaded) {
+            console.warn('광고가 아직 로드되지 않았습니다. 다시 로드합니다.');
+            loadAd();
+            // Optional: Show toast "광고를 불러오는 중입니다"
             return;
         }
 
@@ -63,15 +71,22 @@ function useGoogleAdMob() {
                     console.log('광고 시청 보상이 지급되었습니다.');
                     onSuccess();
                 }
+                if (event.type === 'dismissed' || event.type === 'failedToShow') {
+                    console.log('광고 닫힘/실패 -> 다음 광고 로드');
+                    setIsAdLoaded(false);
+                    loadAd();
+                }
             },
             onError: (error) => {
                 console.error('광고 표시 중 오류 발생', error);
-                // Optional: decide whether to navigate anyway or show error
+                // Try reloading for next time
+                setIsAdLoaded(false);
+                loadAd();
             },
         });
     };
 
-    return { showAd };
+    return { showAd, isAdLoaded };
 }
 
 export default function SuccessScreen() {
@@ -103,12 +118,29 @@ export default function SuccessScreen() {
             const result = await claimZoneReward(params.zoneId);
 
             if (result.status === 'NEED_AD') {
-                console.log('광고 시청 필요');
-                setIsBottomSheetOpen(true);
-                // We don't set Success/Failure here, just prompt Ad
-                // Showing a toast manually if possible or using the failure state with custom text?
-                // The existing toast is for failure.
-                // Let's assume the user understands they need to watch ad since bottom sheet opens.
+                console.log('광고 시청 필요: 광고 재생 시작');
+                showAd(async () => {
+                    try {
+                        // 1. Unlock Ad status on server
+                        await unlockAd();
+                        console.log('광고 시청 완료: Ad Unlocked');
+
+                        // 2. Re-claim reward after unlocking
+                        const retryResult = await claimZoneReward(params.zoneId!);
+
+                        if (retryResult.success || retryResult.alreadyRewarded) {
+                            console.log('광고 후 포인트 지급 성공', retryResult);
+                            setIsPromotionSuccess(true);
+                            setIsBottomSheetOpen(true);
+                        } else {
+                            console.error('광고 후 포인트 지급 실패', retryResult);
+                            setIsPromotionFailure(true);
+                        }
+                    } catch (err) {
+                        console.error('Core reward flow failed after ad:', err);
+                        setIsPromotionFailure(true);
+                    }
+                });
                 return;
             }
 

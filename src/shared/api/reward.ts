@@ -10,7 +10,7 @@ export interface RewardResponse {
 
 export interface AdUnlockResponse {
     success: boolean;
-    data?: any;
+    data?: Record<string, unknown>;
     error?: string;
 }
 

@@ -45,10 +45,10 @@ export const clearSessionToken = async (): Promise<void> => {
     try {
         if (typeof Storage.removeItem === 'function') {
             await Storage.removeItem(SESSION_KEY);
-        } else {
-            // Fallback if removeItem is not available
-            await Storage.setItem(SESSION_KEY, '');
         }
+        // Double ensure by setting empty string, some environments might be flaky with removeItem
+        await Storage.setItem(SESSION_KEY, '');
+        console.log('Session token cleared successfully from storage');
     } catch (error) {
         console.warn('Failed to clear session token from Toss Storage:', error);
     }

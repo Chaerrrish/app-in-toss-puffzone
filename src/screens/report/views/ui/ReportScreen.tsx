@@ -112,6 +112,7 @@ export default function ReportScreen() {
             }
         } catch (e: unknown) {
             setIsSubmittingFailed(true);
+            console.error('Report failed:', e);
         } finally {
             setIsSubmitting(false);
         }
