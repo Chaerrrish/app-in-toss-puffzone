@@ -1,6 +1,6 @@
 import { View } from "react-native";
-import { Spacing, useNavigation, createRoute } from "@granite-js/react-native";
-import { Asset, Badge, BottomSheet, Button, ConfirmDialog, FixedBottomCTA, FixedBottomCTAProvider, Toast, Txt } from "@toss/tds-react-native";
+import { Spacing, createRoute } from "@granite-js/react-native";
+import { Asset, BottomSheet, Button, ConfirmDialog, FixedBottomCTA, FixedBottomCTAProvider, Toast, Txt } from "@toss/tds-react-native";
 import { useAdaptive } from "@toss/tds-react-native/private";
 import { useEffect, useState } from "react";
 import { GoogleAdMob, closeView } from "@apps-in-toss/framework";
@@ -91,16 +91,14 @@ function useGoogleAdMob() {
 
 export default function SuccessScreen() {
     const { showAd } = useGoogleAdMob();
-    const navigation = useNavigation();
     const adaptive = useAdaptive();
     const params = Route.useParams();
-    const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
-    // isToastOpen removed
     const [isPromotionSuccess, setIsPromotionSuccess] = useState(false);
     const [isPromotionFailure, setIsPromotionFailure] = useState(false);
     const [isRewarding, setIsRewarding] = useState(false);
 
     const [isLimitReachedBottomSheetOpen, setIsLimitReachedBottomSheetOpen] = useState(false);
+    const [isBlockedUserToastOpen, setIsBlockedUserToastOpen] = useState(false);
 
     // Exit Dialog State
     const [isExitDialogOpen, setIsExitDialogOpen] = useState(false);
@@ -128,10 +126,15 @@ export default function SuccessScreen() {
                         // 2. Re-claim reward after unlocking
                         const retryResult = await claimZoneReward(params.zoneId!);
 
+                        if (retryResult.status === 'BLOCKED_USER') {
+                            console.log('차단된 유저 (광고 후)');
+                            setIsBlockedUserToastOpen(true);
+                            return;
+                        }
+
                         if (retryResult.success || retryResult.alreadyRewarded) {
                             console.log('광고 후 포인트 지급 성공', retryResult);
                             setIsPromotionSuccess(true);
-                            setIsBottomSheetOpen(true);
                         } else {
                             console.error('광고 후 포인트 지급 실패', retryResult);
                             setIsPromotionFailure(true);
@@ -144,6 +147,12 @@ export default function SuccessScreen() {
                 return;
             }
 
+            if (result.status === 'BLOCKED_USER') {
+                console.log('차단된 유저');
+                setIsBlockedUserToastOpen(true);
+                return;
+            }
+
             if (result.status === 'LIMIT_EXCEEDED') {
                 console.log('일일 한도 초과');
                 setIsLimitReachedBottomSheetOpen(true);
@@ -152,7 +161,6 @@ export default function SuccessScreen() {
 
             if (result.success || result.alreadyRewarded) {
                 console.log('프로모션 지급 성공', result);
-                setIsBottomSheetOpen(true);
                 setIsPromotionSuccess(true);
             } else {
                 console.error('프로모션 지급 실패', result.error);
@@ -166,20 +174,9 @@ export default function SuccessScreen() {
         }
     };
 
-
     const handleConfirmExit = () => {
         setIsExitDialogOpen(false);
         closeView();
-    };
-
-    const handleAdReward = () => {
-        showAd(async () => {
-            // Unlock Ad status on server
-            await unlockAd();
-
-            // Navigate to report screen for additional report
-            navigation.navigate('/location');
-        });
     };
 
 
@@ -232,49 +229,12 @@ export default function SuccessScreen() {
                     }
                 />
             </FixedBottomCTAProvider>
-            {/* Ad Reward BottomSheet */}
-            <BottomSheet.Root open={isBottomSheetOpen} onClose={() => { setIsBottomSheetOpen(false) }}>
-                <Spacing size={16} />
-                <BottomSheet.Header>{`광고 시청 후 \n흡연구역을 하나 더 제보할 수 있어요`}</BottomSheet.Header>
-                <BottomSheet.HeaderDescription>흡연구역 추가 제보 후 20p 더 받아가세요</BottomSheet.HeaderDescription>
-                <BottomSheet.CTA.Double
-                    leftButton={
-                        <Button
-                            type="primary"
-                            style="fill"
-                            display="block"
-                            disabled={false}
-                            textStyle={{ paddingLeft: 8 }}
-                            containerStyle={{ paddingLeft: 16 }}
-                            leftAccessory={
-                                <Badge size="small" type="green" badgeStyle="fill">
-                                    AD
-                                </Badge>}
-                            onPress={handleAdReward}
-                        >
-                            광고 보고 20p 더 받기
-                        </Button>
-                    }
-                    rightButton={
-                        <Button
-                            type="dark"
-                            style="weak"
-                            display="block"
-                            disabled={false}
-                            loading={false}
-                            onPress={() => setIsBottomSheetOpen(false)}
-                        >
-                            닫기
-                        </Button>
-                    }
-                />
-            </BottomSheet.Root>
 
             {/* Limit Reached BottomSheet */}
             <BottomSheet.Root open={isLimitReachedBottomSheetOpen} onClose={() => { setIsLimitReachedBottomSheetOpen(false) }}>
                 <Spacing size={16} />
                 <BottomSheet.Header>{`오늘 받을 수 있는 \n포인트를 모두 받았어요`}</BottomSheet.Header>
-                <BottomSheet.HeaderDescription>{`내일 또 포인트를 받을 수 있어요.\n흡연구역 제보하고 매일 최대 100p 받아가세요.`}</BottomSheet.HeaderDescription>
+                <BottomSheet.HeaderDescription>{`내일 또 포인트를 받을 수 있어요.\n흡연구역 제보하고 매일 최대 40p 받아가세요.`}</BottomSheet.HeaderDescription>
                 <View style={{ alignItems: 'center', paddingTop: 24 }}>
                     <Asset.Icon
                         frameShape={{ width: 96, height: 96 }}
@@ -296,6 +256,13 @@ export default function SuccessScreen() {
                 position="top"
                 icon={<Toast.LottieIcon preset type="error" />}
                 onClose={() => setIsPromotionFailure(false)}
+            />
+            <Toast
+                open={isBlockedUserToastOpen}
+                text="포인트 지급이 불가한 유저예요"
+                position="top"
+                icon={<Toast.LottieIcon preset type="error" />}
+                onClose={() => setIsBlockedUserToastOpen(false)}
             />
             <ConfirmDialog
                 open={isExitDialogOpen}

@@ -159,7 +159,7 @@ export default function ReportScreen() {
                             <Post.Paragraph typography="t6">퍼프존 서비스는 주식회사 포트존에서 제공합니다.</Post.Paragraph>
                         </Post.Li>
                         <Post.Li>
-                            <Post.Paragraph typography="t6">포인트 적립은 하루 5번(최대 100p)까지 가능합니다.</Post.Paragraph>
+                            <Post.Paragraph typography="t6">포인트 적립은 하루 2번(최대 40p)까지 가능합니다.</Post.Paragraph>
                         </Post.Li>
                         <Post.Li>
                             <Post.Paragraph typography="t6">{`지급된 포인트는 [혜택] > [내 포인트]에서 확인하실 수 있습니다.`}</Post.Paragraph>

@@ -5,7 +5,7 @@ export interface RewardResponse {
     rewarded?: boolean;
     alreadyRewarded?: boolean;
     error?: string;
-    status?: 'NEED_AD' | 'LIMIT_EXCEEDED' | 'ALREADY_REPORTED' | 'SUCCESS';
+    status?: 'NEED_AD' | 'LIMIT_EXCEEDED' | 'ALREADY_REPORTED' | 'SUCCESS' | 'BLOCKED_USER';
 }
 
 export interface AdUnlockResponse {
@@ -35,11 +35,15 @@ export const claimZoneReward = async (zoneId: string): Promise<RewardResponse> =
         if (response.status === 428) {
             return { success: false, status: 'NEED_AD', error: '광고 시청이 필요해요' };
         }
+
+        const data = await response.json().catch(() => ({}));
+
         if (response.status === 403) {
+            if (data.status === 'BLOCKED_USER') {
+                return { success: false, status: 'BLOCKED_USER', error: '포인트 지급이 불가한 유저에요' };
+            }
             return { success: false, status: 'LIMIT_EXCEEDED', error: '하루 제보 한도를 초과했어요' };
         }
-
-        const data = await response.json();
 
         if (!response.ok) {
             return {
