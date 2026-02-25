@@ -1,12 +1,15 @@
 import { theme } from '@/shared/styles/theme';
 import { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { Spacing, useNavigation, createRoute } from '@granite-js/react-native';
+import { StyleSheet, View } from 'react-native';
+import { Spacing, useNavigation, createRoute, IOScrollView } from '@granite-js/react-native';
 import { z as zod } from 'zod';
 import { ReportFormData, ReportInfoModalType } from '@/screens/report';
 import { reportZone } from "@/shared/api/report_zone";
 import { BottomInfo, FixedBottomCTA, FixedBottomCTAProvider, Post, AlertDialog, Toast } from '@toss/tds-react-native';
 import { ReportCategorySection, ReportFeatureSection, ReportFormSection, ReportImageSection, ReportLocationSection } from '@/screens/report/widgets';
+import { InlineAd } from '@apps-in-toss/framework';
+
+const AD_GROUP_ID = 'ait.v2.live.dbf4c6b125424a9d'
 
 export interface ReportScreenParams {
     latitude: number;
@@ -30,6 +33,9 @@ export default function ReportScreen() {
     const [infoModal, setInfoModal] = useState<ReportInfoModalType>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmittingFailed, setIsSubmittingFailed] = useState(false);
+
+    // Ad State
+    const [isAdSupported, setIsAdSupported] = useState(true);
 
     // Alert State
     const [alertConfig, setAlertConfig] = useState<{
@@ -121,10 +127,10 @@ export default function ReportScreen() {
     return (
         <>
             <FixedBottomCTAProvider
-                wrapper={ScrollView}
+                wrapper={IOScrollView}
                 wrapperProps={{
                     onTouchStart: () => {
-                        if (infoModal) setInfoModal(null); // Close modal on outside tap
+                        if (infoModal) setInfoModal(null);
                     },
                     style: styles.container,
                 }}
@@ -141,6 +147,26 @@ export default function ReportScreen() {
                         infoModal={infoModal}
                         onInfoModalChange={setInfoModal}
                     />
+                    {isAdSupported && (
+                        <View style={styles.adBox}>
+                            <InlineAd
+                                adGroupId={AD_GROUP_ID}
+                                impressFallbackOnMount={true}
+                                onAdRendered={(payload) => console.log('InlineAd: onAdRendered', payload)}
+                                onAdImpression={(payload) => console.log('InlineAd: onAdImpression', payload)}
+                                onAdViewable={(payload) => console.log('InlineAd: onAdViewable', payload)}
+                                onAdClicked={(payload) => console.log('InlineAd: onAdClicked', payload)}
+                                onNoFill={(payload) => {
+                                    console.log('InlineAd: onNoFill', payload);
+                                    setIsAdSupported(false);
+                                }}
+                                onAdFailedToRender={(payload) => {
+                                    console.log('InlineAd: onAdFailedToRender', payload);
+                                    setIsAdSupported(false);
+                                }}
+                            />
+                        </View>
+                    )}
                     <ReportCategorySection formData={formData} updateForm={updateForm} />
                     <ReportFeatureSection formData={formData} updateForm={updateForm} />
                     <ReportImageSection
@@ -167,6 +193,11 @@ export default function ReportScreen() {
                         <Post.Li>
                             <Post.Paragraph typography="t6">
                                 네트워크 장애 등으로 인해 포인트 지급이 지연될 수 있습니다.
+                            </Post.Paragraph>
+                        </Post.Li>
+                        <Post.Li>
+                            <Post.Paragraph typography="t6">
+                                허위 제보가 반복적으로 확인될 시, 프로모션 지급이 제한될 수 있습니다.
                             </Post.Paragraph>
                         </Post.Li>
                     </Post.Ul>
@@ -255,4 +286,13 @@ const styles = StyleSheet.create({
         ...theme.text.m.r,
         color: theme.colors.text.tertiary,
     },
+    adBox: {
+        width: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderColor: theme.colors.gray[90],
+        borderWidth: 1,
+        borderRadius: 8,
+        overflow: 'hidden',
+    }
 });

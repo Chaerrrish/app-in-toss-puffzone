@@ -1,17 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-// Granite / Toss imports
 import { useNavigation } from '@granite-js/react-native';
 import { Asset, FixedBottomCTA, FixedBottomCTAProvider, AlertDialog } from '@toss/tds-react-native';
 
-// Local Components & Hooks
 import { MoveToCurrentLocationButton } from './components/MoveToCurrentLocationButton';
 import { NaverMapSelector, CameraState, NaverMapHandle } from './components/NaverMapView';
 import { useReportForm } from './hooks/useReportForm';
 import { useReverseGeocode } from './hooks/useReverseGeocode';
 import { useMoveToCurrentLocation } from './hooks/useMoveToCurrentLocation';
 import { theme } from '@/shared/styles/theme';
+
 
 const INITIAL_CAMERA: CameraState = {
     latitude: 37.5536,
@@ -66,6 +65,7 @@ export default function LocationScreen() {
         buttonText: '확인',
         onButtonPress: undefined,
     });
+
 
     const { handleMoveToCurrentLocation } = useMoveToCurrentLocation({
         naverMapRef,
@@ -163,7 +163,7 @@ export default function LocationScreen() {
 
     return (
         <>
-            <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+            <View style={styles.container}>
                 <View style={styles.contentContainer}>
                     <View style={styles.mapContainer}>
                         <NaverMapSelector
