@@ -3,7 +3,7 @@ import { Spacing, createRoute } from "@granite-js/react-native";
 import { Asset, BottomSheet, Button, ConfirmDialog, FixedBottomCTA, FixedBottomCTAProvider, Toast, Txt } from "@toss/tds-react-native";
 import { useAdaptive } from "@toss/tds-react-native/private";
 import { useEffect, useState } from "react";
-import { GoogleAdMob, closeView } from "@apps-in-toss/framework";
+import { loadFullScreenAd, showFullScreenAd, closeView } from "@apps-in-toss/framework";
 import { claimZoneReward, unlockAd } from '@/shared/api/reward';
 import { z } from 'zod';
 
@@ -13,21 +13,21 @@ function useGoogleAdMob() {
     const [isAdLoaded, setIsAdLoaded] = useState(false);
 
     const loadAd = () => {
-        console.log('useGoogleAdMob: Starting loadAppsInTossAdMob');
-        if (GoogleAdMob.loadAppsInTossAdMob.isSupported() !== true) {
-            console.log('useGoogleAdMob: loadAppsInTossAdMob is not supported');
-            return;
+        console.log('useGoogleAdMob: Starting loadFullScreenAd');
+        if (!loadFullScreenAd.isSupported()) {
+            console.log('useGoogleAdMob: loadFullScreenAd is not supported');
+            return () => { };
         }
 
         try {
-            GoogleAdMob.loadAppsInTossAdMob({
+            return loadFullScreenAd({
                 options: {
                     adGroupId: AD_GROUP_ID,
                 },
                 onEvent: (event) => {
                     switch (event.type) {
                         case 'loaded':
-                            console.log('광고 로드 성공', event.data);
+                            console.log('광고 로드 성공');
                             setIsAdLoaded(true);
                             break;
                     }
@@ -38,18 +38,22 @@ function useGoogleAdMob() {
                 },
             });
         } catch (e) {
-            console.error('loadAppsInTossAdMob execution failed', e);
+            console.error('loadFullScreenAd execution failed', e);
+            return () => { };
         }
     };
 
     // Load ad on mount
     useEffect(() => {
-        loadAd();
+        const unregister = loadAd();
+        return () => {
+            if (unregister) unregister();
+        };
     }, []);
 
     const showAd = (onSuccess: () => void) => {
-        if (GoogleAdMob.showAppsInTossAdMob.isSupported() !== true) {
-            console.log('useGoogleAdMob: showAppsInTossAdMob is not supported');
+        if (!showFullScreenAd.isSupported()) {
+            console.log('useGoogleAdMob: showFullScreenAd is not supported');
             // Fallback for dev/unsupported env -> treat as success
             onSuccess();
             return;
@@ -62,7 +66,7 @@ function useGoogleAdMob() {
             return;
         }
 
-        GoogleAdMob.showAppsInTossAdMob({
+        showFullScreenAd({
             options: {
                 adGroupId: AD_GROUP_ID,
             },
